@@ -4,7 +4,7 @@
 // Kinematics
 //   Y  bed (board plane) moves front/back, 200 mm travel
 //   X  tool carriage moves left/right on a fixed gantry, 280 mm travel
-//   Z1 vacuum nozzle up/down, 40 mm, plus C rotation (hollow-shaft NEMA 8)
+//   Z1 vacuum nozzle up/down, 40 mm, plus C rotation (hollow-shaft NEMA 11)
 //   Z2 paste syringe up/down, 40 mm
 //
 // Units: mm. +X right, +Y toward the back, +Z up.
@@ -66,12 +66,12 @@ function g_H1(g) = g[6];
 function g_P(g)  = g[7];
 
 // ---------------------------------------------------------------- Y axis (bed)
-Y_RAIL_X = 80;            // rails at X = +/-80
+Y_RAIL_X = 50;            // rails at X = +/-50
 Y_RAIL_LEN = 400;
 RISER_H = 20;             // 2020 riser under each Y rail
 Z_YRAIL = Z_PLATE + RISER_H;          // 74, rail seat
-BED_W = 240;
-BED_D = 180;
+BED_W = 140;              // narrow bed: board at the front, tape strips across the back
+BED_D = 186;              // bed ends reach Y = +/-193; the Y motor starts at 197
 BED_T = 6;
 Z_BED = Z_YRAIL + g_H(MGN12);         // 87, bed underside
 Z_BED_TOP = Z_BED + BED_T;            // 93
@@ -81,17 +81,19 @@ Z_YBELT = 76;                         // belt loop centre height
 
 // ---------------------------------------------------------------- board and feeders (bed-local)
 FIX_T = 3;
+FIX_RIM = 5;
 PCB_W = 100;
 PCB_D = 80;
 PCB_T = 1.6;
-PCB_C = [-45, 0];
+PCB_C = [0, -48];                     // front half of the bed
 Z_PCB_TOP = Z_BED_TOP + FIX_T;        // 96
-FEEDER_N = 6;
-FEEDER_X0 = 35;
-FEEDER_PITCH = 14;
-FEEDER_Y = [-65, 75];
+FEEDER_N = 6;                         // strips across the bed (tape runs along X)
+FEEDER_Y0 = 20;                       // first strip centre, bed-local Y
+FEEDER_PITCH = 13;
+FEEDER_X = [-65, 65];
 Z_TAPE_TOP = Z_BED_TOP + 4;           // 97
 TAPE_POCKET_PITCH = 4;                // EIA-481, 8 mm tape
+TAPE_PART_OFF = -1.25;                // pocket centre from strip centre (1.75 + 3.5 from the hole-side edge)
 
 // ---------------------------------------------------------------- gantry
 POST_X = FRAME_W/2 - 10;              // 220, post centre
@@ -116,6 +118,17 @@ Z_XBELT = 315;
 // ---------------------------------------------------------------- fixed stations on the tool line
 BOTTOM_CAM_X = 160;
 PURGE_X = -160;
+REJECT_X = 110;
+
+// ---------------------------------------------------------------- nozzle head (C axis)
+// OUKEDA OK28ZK34-084B-HM5 as photographed: 28 mm frame, 34 mm body, hollow shaft,
+// rotary push-in fitting for 4 mm tube on the rear M5 thread. Stack sizes above the
+// motor are estimated from the photo.
+C_MOTOR_S = 28;
+C_MOTOR_L = 34;
+NOZ_MOTOR_Z = 31;                     // motor face (down) above the nozzle tip
+NOZ_TOP = NOZ_MOTOR_Z + C_MOTOR_L + 37;   // 102, top of the push-in fitting above the tip
+PUMP_IN = [251, 67, 209];             // hose port on the valve, outside the right post
 
 // ---------------------------------------------------------------- colours
 C_ALU    = [0.78, 0.80, 0.83];
@@ -133,6 +146,9 @@ C_PAD    = [0.86, 0.72, 0.36];
 C_BARREL = [0.88, 0.92, 0.96, 0.45];
 C_PASTE  = [0.55, 0.57, 0.58];
 C_RUBBER = [0.10, 0.10, 0.10];
+C_HOSE   = [0.20, 0.45, 0.85];
+C_WHITE  = [0.94, 0.94, 0.92];
+C_STEEL  = [0.78, 0.79, 0.80];
 
 // ---------------------------------------------------------------- pose
 function pose() = animate ? [
@@ -144,6 +160,7 @@ function pose() = animate ? [
   ] : [pose_x, pose_y, pose_z_nozzle, pose_z_paste, pose_c];
 
 assert(BED_D <= Y_TRAVEL, "bed deeper than Y travel: tools cannot reach its full depth");
+assert(BED_D/2 + Y_TRAVEL/2 < Y_PULLEY_Y - 21.15, "bed hits the Y motor at the end of travel");
 assert(MAIN_W/2 + X_TRAVEL/2 < POST_X - 10, "carriage hits the posts at end of X travel");
 assert(Z_TIP_SAFE - Z_TRAVEL < Z_PCB_TOP, "Z travel does not reach the board");
 
@@ -205,7 +222,7 @@ module stepper(S, len, pilot_d, shaft_d, shaft_l, hollow=0) {
 }
 module nema17(len=40) stepper(42.3, len, 22, 5, 22);
 module nema11(len=32) stepper(28, len, 22, 5, 20);
-module nema8_hollow(len=30) stepper(20, len, 15, 4, 6, hollow=2);
+module nema11_hollow(len=C_MOTOR_L) stepper(C_MOTOR_S, len, 22, 5, 0.1, hollow=3);
 
 // GT2 pulley, 20 teeth: pitch diameter 20*2/pi = 12.73 mm, 40 mm per revolution
 GT2_PD = 20*2/PI;
@@ -273,23 +290,18 @@ module bed(show_parts=true) {
   // tooling plate
   color(C_PLATE) difference() {
     box([-BED_W/2, -BED_D/2, Z_BED], [BED_W/2, BED_D/2, Z_BED_TOP]);
-    for (x=[-110:20:110], y=[-80:20:80]) translate([x, y, Z_BED_TOP-1.5]) cylinder(d=3, h=2, $fn=8);
+    for (x=[-60:20:60], y=[-80:20:80]) translate([x, y, Z_BED_TOP-1.5]) cylinder(d=3, h=2, $fn=8);
   }
   // PCB fixture: 1.4 mm floor + 1.6 mm frame, board sits flush at Z_PCB_TOP
   translate([PCB_C[0], PCB_C[1], 0]) {
     color(C_PRINT) difference() {
-      box([-PCB_W/2-10, -PCB_D/2-10, Z_BED_TOP], [PCB_W/2+10, PCB_D/2+10, Z_PCB_TOP]);
+      box([-PCB_W/2-FIX_RIM, -PCB_D/2-FIX_RIM, Z_BED_TOP], [PCB_W/2+FIX_RIM, PCB_D/2+FIX_RIM, Z_PCB_TOP]);
       box([-PCB_W/2-0.2, -PCB_D/2-0.2, Z_PCB_TOP-PCB_T], [PCB_W/2+0.2, PCB_D/2+0.2, Z_PCB_TOP+1]);
     }
     pcb(show_parts);
   }
-  // strip feeders for 8 mm tape, along Y
-  for (i=[0:FEEDER_N-1]) translate([FEEDER_X0 + i*FEEDER_PITCH, 0, 0]) strip_feeder(i);
-  // reject bin
-  color(C_PRINT) translate([70, -81.5, Z_BED_TOP]) difference() {
-    translate([-38, -7, 0]) cube([76, 14, 8]);
-    translate([-36, -5, 1.2]) cube([72, 10, 8]);
-  }
+  // strip feeders for 8 mm tape, across the back half of the bed
+  for (i=[0:FEEDER_N-1]) translate([0, FEEDER_Y0 + i*FEEDER_PITCH, 0]) strip_feeder(i);
 }
 
 // Footprints on the demo board (board-local X, Y, rotation, type)
@@ -322,11 +334,13 @@ module pcb(show_parts=true) {
   }
 }
 
+// One strip along X. Built with the tape along local Y, then turned so local Y = world X,
+// local X = world -Y (sprocket holes toward the back, pockets toward the front).
 module strip_feeder(i) {
   type = i % 4;
-  len = FEEDER_Y[1] - FEEDER_Y[0];
-  yc = (FEEDER_Y[0] + FEEDER_Y[1]) / 2;
-  translate([0, yc, 0]) {
+  len = FEEDER_X[1] - FEEDER_X[0];
+  xc = (FEEDER_X[0] + FEEDER_X[1]) / 2;
+  translate([xc, 0, 0]) rotate([0, 0, -90]) {
     color(C_PRINT) difference() {
       box([-6, -len/2, Z_BED_TOP], [6, len/2, Z_TAPE_TOP-0.6]);
       box([-4.2, -len/2-1, Z_TAPE_TOP-1.6], [4.2, len/2+1, Z_TAPE_TOP]);
@@ -337,14 +351,15 @@ module strip_feeder(i) {
       box([-4, -len/2, Z_TAPE_TOP-1.6], [-1.2, len/2, Z_TAPE_TOP-0.1]);
       box([3.4, -len/2, Z_TAPE_TOP-1.6], [4, len/2, Z_TAPE_TOP-0.1]);
     }
-    // cover tape, peeled back from the pick end (front)
+    // cover tape, peeled back from the pick end (left)
     color([0.92, 0.92, 0.90, 0.5]) box([-1.2, -len/2 + 30, Z_TAPE_TOP-0.1], [3.4, len/2, Z_TAPE_TOP]);
     // sprocket holes (1.5 mm on 4 mm pitch) and parts in the pockets
     for (k=[0:floor(len/TAPE_POCKET_PITCH)-1]) {
       y = -len/2 + 2 + k*TAPE_POCKET_PITCH;
       color([0.05,0.05,0.05]) translate([-2.25, y, Z_TAPE_TOP-0.12]) cylinder(d=1.5, h=0.1, $fn=10);
-      color(PART_COL[type]) translate([1.1, y, Z_TAPE_TOP-0.05-PART_DIMS[type][2]/2])
-        cube([PART_DIMS[type][1], PART_DIMS[type][0], PART_DIMS[type][2]], center=true);
+      // long axis across the tape
+      color(PART_COL[type]) translate([-TAPE_PART_OFF, y, Z_TAPE_TOP-0.05-PART_DIMS[type][2]/2])
+        cube([PART_DIMS[type][0], PART_DIMS[type][1], PART_DIMS[type][2]], center=true);
     }
   }
 }
@@ -391,11 +406,19 @@ module stations() {
     color(C_PRINT) difference() { cylinder(d=34, h=30); translate([0,0,3]) cylinder(d=30, h=30); }
     color([0.95, 0.85, 0.25]) translate([0,0,22]) cylinder(d=30, h=6);
   }
-  // controller and vacuum pump behind the bed travel
+  // reject bin for parts that fail the bottom-camera check
+  translate([REJECT_X, TOOL_Y, Z_PLATE]) color(C_PRINT) difference() {
+    box([-15, -20, 0], [15, 20, 26]);
+    box([-13, -18, 2], [13, 18, 27]);
+  }
+  // controller behind the bed travel
   color([0.18, 0.19, 0.21]) box([-200, 200, Z_PLATE], [-60, 236, Z_PLATE+60]);
   color([0.25, 0.45, 0.75]) box([-190, 199, Z_PLATE+42], [-150, 200, Z_PLATE+52]);
-  color([0.20, 0.21, 0.23]) box([80, 202, Z_PLATE], [150, 234, Z_PLATE+40]);
-  color(C_LAM) translate([160, 210, Z_PLATE]) box([0, 0, 0], [24, 16, 26]);
+  // vacuum pump and solenoid valve on the outside of the right post
+  color(C_PRINT) box([POST_X+10, BEAM_Y-20, 125], [POST_X+13, BEAM_Y+20, 195]);
+  color([0.20, 0.21, 0.23]) box([POST_X+13, BEAM_Y-23, 130], [POST_X+49, BEAM_Y+23, 190]);
+  color(C_CAP) box([PUMP_IN[0]-11, PUMP_IN[1]-7, 190], [PUMP_IN[0]+11, PUMP_IN[1]+11, 204]);
+  color(C_BRASS) translate([PUMP_IN[0], PUMP_IN[1], 204]) cylinder(d=6, h=PUMP_IN[2]-204);
 }
 
 // =================================================================== X carriage (moves in X)
@@ -437,21 +460,33 @@ module z_stage() {
   color(C_BRASS) box([-8, 14, 128], [8, ZC_FRONT, 140]);
 }
 
-// Vacuum nozzle head: NEMA 8 hollow-shaft motor turns the nozzle (C axis)
+// Vacuum nozzle head: NEMA 11 hollow-shaft motor turns the nozzle (C axis).
+// Vacuum enters through the rotary push-in fitting on top and runs down the hollow shaft.
 module nozzle_head(c) {
+  z0 = NOZ_MOTOR_Z;
   color(C_PRINT) difference() {
     union() {
-      box([-15, -12, 27], [15, ZC_FRONT, 31]);
-      box([-15, ZC_FRONT-4, 27], [15, ZC_FRONT, 70]);
+      box([-17, -16, z0-4], [17, ZC_FRONT, z0]);
+      box([-17, ZC_FRONT-4, z0-4], [17, ZC_FRONT, z0+C_MOTOR_L]);
     }
-    translate([0,0,26]) cylinder(d=16, h=6);
+    translate([0,0,z0-5]) cylinder(d=23, h=6);
   }
-  translate([0, 0, 31]) rotate([180,0,0]) nema8_hollow();
-  // rotary vacuum union and hose stub
-  color(C_LAM) translate([0,0,61]) cylinder(d=8, h=10);
-  color([0.85, 0.85, 0.80, 0.8]) translate([0,0,71]) cylinder(d=5, h=8);
-  // rotating part: holder + nozzle
+  translate([0, 0, z0]) rotate([180,0,0]) nema11_hollow();
+  // rear stack, estimated from the photo: shaft sleeve, M5 hex, bearing, rotary body, push-in fitting, release collar
+  zt = z0 + C_MOTOR_L;
+  color(C_STEEL) {
+    translate([0,0,zt]) cylinder(d=6, h=6);
+    translate([0,0,zt+6]) cylinder(d=8/cos(30), h=5, $fn=6);
+    translate([0,0,zt+11]) cylinder(d=11, h=3);
+  }
+  color(C_WHITE) {
+    translate([0,0,zt+14]) cylinder(d=12, h=11);
+    translate([0,0,zt+25]) cylinder(d=8.5, h=7);
+  }
+  color(C_HOSE) translate([0,0,zt+32]) cylinder(d=10, h=5);
+  // rotating part: Juki-style holder on the 5 mm front shaft + nozzle
   rotate([0,0,c]) {
+    color(C_LAM) translate([0,0,z0-3]) cylinder(d=5, h=3);
     color(C_LAM) difference() { translate([0,0,16]) cylinder(d=10, h=11); translate([3.6,-6,15]) cube([4,12,13]); }
     color(C_CAP) translate([0,0,9]) cylinder(d=5, h=7);
     color(C_LAM) translate([0,0,5]) cylinder(d1=1.6, d2=5, h=4);
@@ -476,6 +511,24 @@ module syringe() {
   }
 }
 
+// =================================================================== vacuum hose
+// Catmull-Rom curve through the control points, drawn as hulled spheres.
+function cr(p0, p1, p2, p3, t) =
+  0.5 * (2*p1 + (p2 - p0)*t + (2*p0 - 5*p1 + 4*p2 - p3)*t*t + (3*p1 - p0 - 3*p2 + p3)*t*t*t);
+function cr_path(P, n=8) = let(m = len(P), Q = concat([P[0]], P, [P[m-1]]))
+  concat([for (i=[0:m-2], k=[0:n-1]) cr(Q[i], Q[i+1], Q[i+2], Q[i+3], k/n)], [P[m-1]]);
+// From the fitting on top of the nozzle, forward and up past the Z motors, over the
+// gantry, down the outside of the right post to the valve on the pump.
+function hose_points(xn, ztop) = [
+  [xn, 0, ztop], [xn, 0, ztop + 12], [xn, -20, ztop + 60], [xn, -24, 345],
+  [xn + (292 - xn)*0.45, 10, 420], [292, BEAM_Y - 20, 355], [292, BEAM_Y - 8, 262],
+  [276, PUMP_IN[1] - 1, 228], PUMP_IN + [0, 0, 6], PUMP_IN
+];
+module hose(P, d=4) {
+  S = cr_path(P);
+  color(C_HOSE) for (i=[0:len(S)-2]) hull() { translate(S[i]) sphere(d=d, $fn=8); translate(S[i+1]) sphere(d=d, $fn=8); }
+}
+
 // =================================================================== assembly
 module envelope() {
   // area the tool line sweeps over the bed; drawn in bed-local coordinates at the board height
@@ -491,12 +544,13 @@ module pnp_200(p) {
   stations();
   translate([0, yb, 0]) bed(show_parts_on_board);
   translate([xc, 0, 0]) x_carriage(p[2], p[3], p[4]);
+  hose(hose_points(xc + TOOL_DX, Z_TIP_SAFE - p[2] + NOZ_TOP));
   if (show_envelope) envelope();
 }
 
 P = pose();
 echo(str("PnP-200 pose X=", P[0], " Y=", P[1], " Z1=", P[2], " Z2=", P[3], " C=", P[4]));
-echo(str("Frame ", FRAME_W, " x ", FRAME_D, " mm (", 2*(X_PULLEY_X+26), " mm wide over the X drive), top of Z motors at ", MAIN_Z[1]+4+32, " mm"));
+echo(str("Frame ", FRAME_W, " x ", FRAME_D, " mm (", 2*(X_PULLEY_X+26), " mm wide over the X drive, ", POST_X+49, " mm to the pump side), top of Z motors at ", MAIN_Z[1]+4+32, " mm"));
 echo(str("Bed ", BED_W, " x ", BED_D, " mm, board fixture ", PCB_W, " x ", PCB_D, " mm"));
 echo(str("X/Y belt: GT2 20T, ", 20*2, " mm/rev, ", 200*16/(20*2), " microsteps/mm at 1/16"));
 pnp_200(P);

@@ -237,13 +237,14 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
       <p class="eyebrow">Key numbers</p>
       <table class="spec">
         <tr><th>Frame</th><td>460 × 480 mm (562 mm wide over the X drive), 366 mm tall; 2040/2020 extrusion</td></tr>
-        <tr><th>Bed (Y)</th><td>240 × 180 mm plate, 200 mm travel, 2 × MGN12 rails, 4 × MGN12H blocks</td></tr>
-        <tr><th>Board</th><td>100 × 80 mm fixture pocket, board top 96 mm above the table</td></tr>
+        <tr><th>Bed (Y)</th><td>140 × 186 mm plate, 200 mm travel, 2 × MGN12 rails, 4 × MGN12H blocks</td></tr>
+        <tr><th>Board</th><td>100 × 80 mm pocket on the front half of the bed, board top 96 mm above the table</td></tr>
         <tr><th>Head (X)</th><td>280 mm travel, 1 × MGN12H on the gantry beam</td></tr>
-        <tr><th>Nozzle (Z1, C)</th><td>40 mm on MGN9H, NEMA 11 + Tr8 screw; NEMA 8 hollow shaft for rotation and vacuum</td></tr>
+        <tr><th>Nozzle (Z1, C)</th><td>40 mm on MGN9H, NEMA 11 + Tr8 screw. C: OUKEDA OK28ZK34 hollow-shaft NEMA 11 (28 × 28 × 34 mm) with a rotary push-in fitting for 4 mm hose</td></tr>
         <tr><th>Syringe (Z2)</th><td>40 mm on MGN9H, 10 cc barrel, air-pressure dispensing</td></tr>
         <tr><th>X/Y drive</th><td>NEMA 17, GT2 belt, 20T pulley: 40 mm/rev, 80 microsteps/mm at 1/16</td></tr>
-        <tr><th>Feeders</th><td>6 strip feeders for 8 mm tape, 4 mm sprocket pitch</td></tr>
+        <tr><th>Feeders</th><td>6 strips of 8 mm tape across the back half of the bed, 4 mm sprocket pitch</td></tr>
+        <tr><th>Vacuum</th><td>Pump and valve on the outside of the right post; the hose loops over the gantry to the nozzle</td></tr>
         <tr><th>Vision</th><td>Down camera on the head (fiducials), up camera on the frame (part alignment)</td></tr>
         <tr><th>Tool offsets</th><td>Nozzle +35 mm, syringe −35 mm, camera 0 in X</td></tr>
       </table>
@@ -277,13 +278,14 @@ const Z_BASE_TOP = FOOT_H + BASE_H, Z_PLATE = Z_BASE_TOP + PLATE_T;
 // HIWIN MGN catalogue values
 const MGN12 = { WR: 12, HR: 8, W: 27, L: 45.4, L1: 32.4, H: 13, H1: 3 };
 const MGN9 = { WR: 9, HR: 6.5, W: 20, L: 39.9, L1: 28.9, H: 10, H1: 2 };
-const Y_RAIL_X = 80, Y_RAIL_LEN = 400, RISER_H = 20, Z_YRAIL = Z_PLATE + RISER_H;
-const BED_W = 240, BED_D = 180, BED_T = 6;
+const Y_RAIL_X = 50, Y_RAIL_LEN = 400, RISER_H = 20, Z_YRAIL = Z_PLATE + RISER_H;
+const BED_W = 140, BED_D = 186, BED_T = 6;      // narrow bed: board in front, tape strips across the back
 const Z_BED = Z_YRAIL + MGN12.H, Z_BED_TOP = Z_BED + BED_T;
 const Y_BLOCK_OFF = 55, Y_PULLEY_Y = 218, Z_YBELT = 76;
-const FIX_T = 3, PCB_W = 100, PCB_D = 80, PCB_T = 1.6, PCB_C = [-45, 0];
+const FIX_T = 3, FIX_RIM = 5, PCB_W = 100, PCB_D = 80, PCB_T = 1.6, PCB_C = [0, -48];
 const Z_PCB_TOP = Z_BED_TOP + FIX_T;
-const FEEDER_N = 6, FEEDER_X0 = 35, FEEDER_PITCH = 14, FEEDER_Y = [-65, 75];
+const FEEDER_N = 6, FEEDER_Y0 = 20, FEEDER_PITCH = 13, FEEDER_X = [-65, 65];   // strips across the bed, tape along X
+const TAPE_PART_OFF = -1.25;   // pocket centre from strip centre: 1.75 + 3.5 mm from the hole-side edge (EIA-481)
 const Z_TAPE_TOP = Z_BED_TOP + 4, POCKET = 4;
 const POST_X = FRAME_W / 2 - 10, ZC_FRONT = 26, ZC_T = 5;
 const MAIN_FRONT = ZC_FRONT + ZC_T + MGN9.H, MAIN_T = 8;
@@ -291,7 +293,11 @@ const XRAIL_SEAT = MAIN_FRONT + MAIN_T + MGN12.H;
 const BEAM_Y = XRAIL_SEAT + 10, Z_BEAM = 280, Z_POST_TOP = Z_BEAM - 20;
 const MAIN_W = 120, MAIN_Z = [130, 330], TOOL_DX = 35, Z_TIP_SAFE = 121;
 const Z_RAIL_Z = [140, 310], SCREW_Y = 21, X_PULLEY_X = 255, Z_XBELT = 315;
-const BOTTOM_CAM_X = 160, PURGE_X = -160;
+const BOTTOM_CAM_X = 160, PURGE_X = -160, REJECT_X = 110;
+// Nozzle head: OUKEDA OK28ZK34-084B-HM5 as photographed (28 mm frame, 34 mm body, hollow shaft,
+// rotary push-in fitting for 4 mm tube on the rear M5 thread). Sizes above the motor are estimated from the photo.
+const C_MOTOR_S = 28, C_MOTOR_L = 34, NOZ_MOTOR_Z = 31, NOZ_TOP = NOZ_MOTOR_Z + C_MOTOR_L + 37;
+const PUMP_IN = [251, 67, 209];
 const GT2_PD = 20 * 2 / Math.PI;       // 20 teeth x 2 mm pitch / pi = 12.73 mm
 
 // Board layout: board-local X, Y, rotation (deg), type
@@ -393,6 +399,8 @@ mat('white', 0xf0f0ee, { rough: 0.5 });
 mat('hub', 0x2f6fd6, { rough: 0.4 });
 mat('dark', 0x2b2f35, { rough: 0.6 });
 mat('hose', 0xe6e3d6, { opacity: 0.85, rough: 0.3 });
+mat('pu', 0x2f6fd6, { rough: 0.35 });
+mat('steel', 0xc7c9cc, { metal: 0.95, rough: 0.25 });
 mat('sponge', 0xf0cf3a, { rough: 0.95 });
 mat('tape', 0x2a2b2e, { rough: 0.7 });
 mat('cover', 0xf4f4f0, { opacity: 0.45, rough: 0.2 });
@@ -516,7 +524,6 @@ function stepper(parent, S, len, pilotD, shaftD, shaftL) {
 }
 const nema17 = p => stepper(p, 42.3, 40, 22, 5, 22);
 const nema11 = p => stepper(p, 28, 32, 22, 5, 20);
-const nema8 = p => stepper(p, 20, 30, 15, 4, 6);
 function gt2Pulley(parent, w = 7, hub = true) {
   cylZ(parent, 0, 0, -w / 2, GT2_PD, w, MAT.lam, 20);
   for (const s of [-1, 1]) cylZ(parent, 0, 0, s * (w / 2 + 0.5) - 0.5, GT2_PD + 4, 1, MAT.lam, 24);
@@ -600,8 +607,16 @@ beltLoop(grp(frame, [0, BEAM_Y, Z_XBELT]), 2 * X_PULLEY_X);
   cylZ(purge, 0, 0, 22, 30, 6, MAT.sponge);
   box(frame, [-200, 200, Z_PLATE], [-60, 236, Z_PLATE + 60], MAT.dark);
   box(frame, [-190, 199, Z_PLATE + 42], [-150, 200, Z_PLATE + 52], MAT.lcd);
-  box(frame, [80, 202, Z_PLATE], [150, 234, Z_PLATE + 40], MAT.dark);
-  box(frame, [160, 210, Z_PLATE], [184, 226, Z_PLATE + 26], MAT.lam);
+  // reject bin for parts that fail the bottom-camera check
+  const rb = grp(frame, [REJECT_X, 0, Z_PLATE]);
+  box(rb, [-15, -20, 0], [15, 20, 2], MAT.print);
+  box(rb, [-15, -20, 0], [-13, 20, 26], MAT.print); box(rb, [13, -20, 0], [15, 20, 26], MAT.print);
+  box(rb, [-13, -20, 0], [13, -18, 26], MAT.print); box(rb, [-13, 18, 0], [13, 20, 26], MAT.print);
+  // vacuum pump and solenoid valve on the outside of the right post
+  box(frame, [POST_X + 10, BEAM_Y - 20, 125], [POST_X + 13, BEAM_Y + 20, 195], MAT.print);
+  box(frame, [POST_X + 13, BEAM_Y - 23, 130], [POST_X + 49, BEAM_Y + 23, 190], MAT.dark);
+  box(frame, [PUMP_IN[0] - 11, PUMP_IN[1] - 7, 190], [PUMP_IN[0] + 11, PUMP_IN[1] + 11, 204], MAT.cap);
+  cylZ(frame, PUMP_IN[0], PUMP_IN[1], 204, 6, PUMP_IN[2] - 204, MAT.brass, 16);
 }
 
 // ============================================================ bed (moves in Y)
@@ -611,7 +626,7 @@ box(bed, [-8, -12, Z_YBELT - 1], [8, 12, Z_BED], MAT.print);
 box(bed, [-BED_W / 2, -BED_D / 2, Z_BED], [BED_W / 2, BED_D / 2, Z_BED_TOP], MAT.plate);
 {
   const holes = [];
-  for (let x = -110; x <= 110; x += 20) for (let y = -80; y <= 80; y += 20) {
+  for (let x = -60; x <= 60; x += 20) for (let y = -80; y <= 80; y += 20) {
     const g = cylGeo(3, 0.1, 8); g.translate(x, y, Z_BED_TOP + 0.02); holes.push(g);
   }
   add(bed, mergeGeometries(holes), MAT.hole, false);
@@ -621,11 +636,12 @@ box(bed, [-BED_W / 2, -BED_D / 2, Z_BED], [BED_W / 2, BED_D / 2, Z_BED_TOP], MAT
 const board = grp(bed, [PCB_C[0], PCB_C[1], 0]);
 {
   const zf = Z_PCB_TOP - PCB_T;
-  box(board, [-PCB_W / 2 - 10, -PCB_D / 2 - 10, Z_BED_TOP], [PCB_W / 2 + 10, PCB_D / 2 + 10, zf], MAT.print);
-  box(board, [-PCB_W / 2 - 10, -PCB_D / 2 - 10, zf], [-PCB_W / 2 - 0.2, PCB_D / 2 + 10, Z_PCB_TOP], MAT.print);
-  box(board, [PCB_W / 2 + 0.2, -PCB_D / 2 - 10, zf], [PCB_W / 2 + 10, PCB_D / 2 + 10, Z_PCB_TOP], MAT.print);
-  box(board, [-PCB_W / 2 - 0.2, -PCB_D / 2 - 10, zf], [PCB_W / 2 + 0.2, -PCB_D / 2 - 0.2, Z_PCB_TOP], MAT.print);
-  box(board, [-PCB_W / 2 - 0.2, PCB_D / 2 + 0.2, zf], [PCB_W / 2 + 0.2, PCB_D / 2 + 10, Z_PCB_TOP], MAT.print);
+  const R = FIX_RIM, w = PCB_W / 2, d = PCB_D / 2;
+  box(board, [-w - R, -d - R, Z_BED_TOP], [w + R, d + R, zf], MAT.print);
+  box(board, [-w - R, -d - R, zf], [-w - 0.2, d + R, Z_PCB_TOP], MAT.print);
+  box(board, [w + 0.2, -d - R, zf], [w + R, d + R, Z_PCB_TOP], MAT.print);
+  box(board, [-w - 0.2, -d - R, zf], [w + 0.2, -d - 0.2, Z_PCB_TOP], MAT.print);
+  box(board, [-w - 0.2, d + 0.2, zf], [w + 0.2, d + R, Z_PCB_TOP], MAT.print);
 }
 function padsFor(p) {
   const d = PART_DIMS[p.t], a = THREE.MathUtils.degToRad(p.r), ca = Math.cos(a), sa = Math.sin(a);
@@ -685,45 +701,42 @@ function pcbTexture() {
   board.add(pcb);
 }
 
-// Strip feeders for 8 mm tape along Y; parts in the first exposed pockets are separate meshes
+// Strip feeders for 8 mm tape, across the back of the bed (tape along X, pick end on the left).
+// Parts sit with their long axis across the tape; the first exposed pockets are separate meshes.
 const partGeo = PART_DIMS.map(d => new THREE.BoxGeometry(d[0], d[1], d[2]));
 const tapeGeo = PART_DIMS.map(d => new THREE.BoxGeometry(d[1], d[0], d[2]));
-const LANE_LEN = FEEDER_Y[1] - FEEDER_Y[0];
+const LANE_LEN = FEEDER_X[1] - FEEDER_X[0];
 const POCKETS = Math.floor(LANE_LEN / POCKET);
 const EXPOSED = 7;                                 // cover tape peeled back 30 mm at the pick end
 const tapeParts = [];
+const laneY = i => FEEDER_Y0 + i * FEEDER_PITCH;
+const pocketX = k => FEEDER_X[0] + 2 + k * POCKET;
 for (let i = 0; i < FEEDER_N; i++) {
-  const x0 = FEEDER_X0 + i * FEEDER_PITCH, t = LANE_TYPE(i), yc = (FEEDER_Y[0] + FEEDER_Y[1]) / 2, y0 = FEEDER_Y[0];
-  const lane = grp(bed, [x0, 0, 0]);
-  box(lane, [-6, y0, Z_BED_TOP], [6, FEEDER_Y[1], Z_TAPE_TOP - 1.6], MAT.print);
-  for (const s of [-1, 1]) box(lane, [s > 0 ? 4.2 : -6, y0, Z_TAPE_TOP - 1.6], [s > 0 ? 6 : -4.2, FEEDER_Y[1], Z_TAPE_TOP - 0.6], MAT.print);
-  box(lane, [-4, y0, Z_TAPE_TOP - 1.6], [4, FEEDER_Y[1], Z_TAPE_TOP - 1.3], MAT.tape);
-  box(lane, [-4, y0, Z_TAPE_TOP - 1.3], [-1.2, FEEDER_Y[1], Z_TAPE_TOP - 0.1], MAT.tape);
-  box(lane, [3.4, y0, Z_TAPE_TOP - 1.3], [4, FEEDER_Y[1], Z_TAPE_TOP - 0.1], MAT.tape);
-  box(lane, [-1.2, y0 + 30, Z_TAPE_TOP - 0.1], [3.4, FEEDER_Y[1], Z_TAPE_TOP], MAT.cover);
+  const t = LANE_TYPE(i), x0 = FEEDER_X[0], x1 = FEEDER_X[1];
+  const lane = grp(bed, [0, laneY(i), 0]);
+  // holder with a channel; carrier tape: pocket floor, hole-side rim (back), far rim (front)
+  box(lane, [x0, -6, Z_BED_TOP], [x1, 6, Z_TAPE_TOP - 1.6], MAT.print);
+  for (const s of [-1, 1]) box(lane, [x0, s > 0 ? 4.2 : -6, Z_TAPE_TOP - 1.6], [x1, s > 0 ? 6 : -4.2, Z_TAPE_TOP - 0.6], MAT.print);
+  box(lane, [x0, -4, Z_TAPE_TOP - 1.6], [x1, 4, Z_TAPE_TOP - 1.3], MAT.tape);
+  box(lane, [x0, 1.2, Z_TAPE_TOP - 1.3], [x1, 4, Z_TAPE_TOP - 0.1], MAT.tape);
+  box(lane, [x0, -4, Z_TAPE_TOP - 1.3], [x1, -3.4, Z_TAPE_TOP - 0.1], MAT.tape);
+  box(lane, [x0 + 30, -3.4, Z_TAPE_TOP - 0.1], [x1, 1.2, Z_TAPE_TOP], MAT.cover);
   const holes = [], buried = [];
   const h = PART_DIMS[t][2];
   tapeParts[i] = [];
   for (let k = 0; k < POCKETS; k++) {
-    const y = y0 + 2 + k * POCKET;
-    const hg = cylGeo(1.5, 0.05, 10); hg.translate(-2.25, y, Z_TAPE_TOP - 0.08); holes.push(hg);
+    const x = pocketX(k);
+    const hg = cylGeo(1.5, 0.05, 10); hg.translate(x, 2.25, Z_TAPE_TOP - 0.08); holes.push(hg);
     if (k < EXPOSED) {
       const m = add(lane, tapeGeo[t], PART_MATS[t]);
-      m.position.set(1.1, y, Z_TAPE_TOP - 0.05 - h / 2);
+      m.position.set(x, TAPE_PART_OFF, Z_TAPE_TOP - 0.05 - h / 2);
       tapeParts[i][k] = m;
     } else {
-      const g = tapeGeo[t].clone(); g.translate(1.1, y, Z_TAPE_TOP - 0.05 - h / 2); buried.push(g);
+      const g = tapeGeo[t].clone(); g.translate(x, TAPE_PART_OFF, Z_TAPE_TOP - 0.05 - h / 2); buried.push(g);
     }
   }
   add(lane, mergeGeometries(holes), MAT.hole, false);
   add(lane, mergeGeometries(buried), PART_MATS[t]);
-}
-// Reject bin
-{
-  const rb = grp(bed, [70, -81.5, Z_BED_TOP]);
-  box(rb, [-38, -7, 0], [38, 7, 1.2], MAT.print);
-  box(rb, [-38, -7, 0], [-36, 7, 8], MAT.print); box(rb, [36, -7, 0], [38, 7, 8], MAT.print);
-  box(rb, [-36, -7, 0], [36, -5, 8], MAT.print); box(rb, [-36, 5, 0], [36, 7, 8], MAT.print);
 }
 
 // ============================================================ X carriage and tools
@@ -753,15 +766,24 @@ function zStage(parent) {
   box(parent, [-15, ZC_FRONT, 25], [15, ZC_FRONT + ZC_T, 140], MAT.plate);
   box(parent, [-8, 14, 128], [8, ZC_FRONT, 140], MAT.brass);
 }
-// Z1: vacuum nozzle, turned by a hollow-shaft NEMA 8 (C axis)
+// Z1: vacuum nozzle, turned by the hollow-shaft NEMA 11 (C axis). Vacuum enters through the
+// rotary push-in fitting on top and runs down the hollow shaft to the nozzle.
 const z1 = grp(carriage, [TOOL_DX, 0, Z_TIP_SAFE]);
 zStage(z1);
-box(z1, [-15, -12, 27], [15, ZC_FRONT, 31], MAT.print);
-box(z1, [-15, ZC_FRONT - 4, 27], [15, ZC_FRONT, 70], MAT.print);
-nema8(grp(z1, [0, 0, 31], [180, 0, 0]));
-cylZ(z1, 0, 0, 61, 8, 10, MAT.lam, 20);
-cylZ(z1, 0, 0, 71, 5, 8, MAT.hose, 16);
+{
+  const z0 = NOZ_MOTOR_Z, zt = z0 + C_MOTOR_L;
+  box(z1, [-17, -16, z0 - 4], [17, ZC_FRONT, z0], MAT.print);
+  box(z1, [-17, ZC_FRONT - 4, z0 - 4], [17, ZC_FRONT, zt], MAT.print);
+  stepper(grp(z1, [0, 0, z0], [180, 0, 0]), C_MOTOR_S, C_MOTOR_L, 22, 5, 0.1);
+  cylZ(z1, 0, 0, zt, 6, 6, MAT.steel, 20);                     // shaft sleeve
+  cylZ(z1, 0, 0, zt + 6, 8 / Math.cos(Math.PI / 6), 5, MAT.steel, 6);   // M5 hex
+  cylZ(z1, 0, 0, zt + 11, 11, 3, MAT.steel, 24);               // bearing
+  cylZ(z1, 0, 0, zt + 14, 12, 11, MAT.white, 24);              // rotary body
+  cylZ(z1, 0, 0, zt + 25, 8.5, 7, MAT.white, 20);              // push-in fitting
+  cylZ(z1, 0, 0, zt + 32, 10, 5, MAT.pu, 20);                  // release collar
+}
 const nozzle = grp(z1);
+cylZ(nozzle, 0, 0, NOZ_MOTOR_Z - 3, 5, 3, MAT.lam, 16);
 cylZ(nozzle, 0, 0, 16, 10, 11, MAT.lam, 24);
 box(nozzle, [4.2, -1.2, 18], [5.4, 1.2, 25], MAT.marker);
 cylZ(nozzle, 0, 0, 9, 5, 7, MAT.cap, 20);
@@ -784,6 +806,24 @@ const bottomCone = add(frame, new THREE.ConeGeometry(14, Z_TIP_SAFE - 2 - (Z_PLA
 bottomCone.position.set(BOTTOM_CAM_X, 0, (Z_TIP_SAFE - 2 + Z_PLATE + 30) / 2);
 bottomCone.visible = false;
 
+// Vacuum hose: from the nozzle fitting, forward and up past the Z motors, over the gantry,
+// down the outside of the right post to the valve on the pump. Rebuilt when the head moves.
+const hoseMesh = add(machine, new THREE.BufferGeometry(), MAT.pu);
+let hoseKey = '';
+function updateHose() {
+  const xn = carriage.position.x + TOOL_DX, zt = z1.position.z + NOZ_TOP;
+  const key = xn.toFixed(1) + '|' + zt.toFixed(1);
+  if (key === hoseKey) return;
+  hoseKey = key;
+  const pts = [
+    [xn, 0, zt], [xn, 0, zt + 12], [xn, -20, zt + 60], [xn, -24, 345],
+    [xn + (292 - xn) * 0.45, 10, 420], [292, BEAM_Y - 20, 355], [292, BEAM_Y - 8, 262],
+    [276, PUMP_IN[1] - 1, 228], [PUMP_IN[0], PUMP_IN[1], PUMP_IN[2] + 6], PUMP_IN,
+  ].map(p => new THREE.Vector3(...p));
+  hoseMesh.geometry.dispose();
+  hoseMesh.geometry = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts, false, 'catmullrom', 0.5), 120, 2, 8, false);
+}
+
 // ============================================================ labels and dimensions
 const labels = [];
 function tag(parent, text, pos) {
@@ -794,10 +834,10 @@ function tag(parent, text, pos) {
   return o;
 }
 tag(bed, 'Bed · Y 200 mm travel', [-BED_W / 2, -BED_D / 2, Z_BED_TOP]);
-tag(bed, 'Strip feeders · 8 mm tape', [FEEDER_X0 + 5 * FEEDER_PITCH + 6, FEEDER_Y[0] + 12, Z_TAPE_TOP]);
-tag(board, 'PCB 100 × 80', [PCB_W / 2, -PCB_D / 2, Z_PCB_TOP]);
+tag(bed, 'Tape strips · 8 mm', [FEEDER_X[1], laneY(FEEDER_N - 1) + 6, Z_TAPE_TOP]);
+tag(board, 'PCB 100 × 80', [PCB_W / 2 + FIX_RIM, -PCB_D / 2, Z_PCB_TOP]);
 tag(frame, 'Gantry · X 280 mm travel', [-170, XRAIL_SEAT - 8, Z_BEAM + 14]);
-tag(z1, 'Nozzle · Z1 + C', [1, 0, 6]);
+tag(z1, 'Nozzle · Z1 + C (NEMA 11 hollow shaft)', [14, -14, NOZ_MOTOR_Z + 20]);
 tag(z2, 'Paste syringe · Z2', [-11, -10, 70]);
 tag(carriage, 'Top camera', [-15, -15, 175]);
 tag(frame, 'Bottom camera', [BOTTOM_CAM_X + 22, -22, Z_PLATE + 18]);
@@ -805,7 +845,8 @@ tag(frame, 'Needle wipe', [PURGE_X - 17, 0, Z_PLATE + 30]);
 tag(frame, 'Y motor', [52, Y_PULLEY_Y, Z_YBELT + 21]);
 tag(frame, 'X motor', [X_PULLEY_X + 21, BEAM_Y - 21, Z_BEAM]);
 tag(frame, 'Controller', [-130, 200, Z_PLATE + 60]);
-tag(frame, 'Vacuum pump + valve', [150, 234, Z_PLATE + 40]);
+tag(frame, 'Vacuum pump + valve', [POST_X + 49, BEAM_Y - 23, 160]);
+tag(frame, 'Reject bin', [REJECT_X - 15, -20, Z_PLATE + 26]);
 
 const dims = new THREE.Group();
 overlay.add(dims);
@@ -856,6 +897,7 @@ function applyPose() {
   z1.position.z = Z_TIP_SAFE - pose.z1;
   z2.position.z = Z_TIP_SAFE - pose.z2;
   nozzle.rotation.z = THREE.MathUtils.degToRad(pose.c);
+  updateHose();
 }
 // Tool over a bed-local point (u, v): carriage x = u - offset, bed y = -v
 const TOOL_OFFSET = { nozzle: TOOL_DX, syringe: -TOOL_DX, camera: 0 };
@@ -936,7 +978,7 @@ function buildProgram() {
     const lanes = [0, 1, 2, 3, 4, 5].filter(l => LANE_TYPE(l) === p.t);
     const lane = lanes.reduce((a, b) => (used[b] < used[a] ? b : a));
     const k = used[lane]++;
-    const pu = FEEDER_X0 + lane * FEEDER_PITCH + 1.1, pv = FEEDER_Y[0] + 2 + k * POCKET;
+    const pu = pocketX(k), pv = laneY(lane) + TAPE_PART_OFF;
     const h = PART_DIMS[p.t][2];
     const [tu, tv] = boardToBed(p.x, p.y);
     let c = p.r - 90; if (c > 180) c -= 360; if (c <= -180) c += 360;
