@@ -255,12 +255,12 @@ The machine has six motors:
 
 | Axis | Motor | Datasheet values | Drive | Full step | Microstep (1/16) |
 |---|---|---|---|---|---|
-| X, Y | StepperOnline **17HM19-2004S**, NEMA 17, 0.9° | 2.0 A/phase, 46 N·cm holding, 1.45 Ω, 4.0 mH, 42 × 42 × 48 mm, 370 g | GT2 belt, 20T pulley, 40 mm/rev | 0.100 mm | 6.25 µm |
-| Z1, Z2 | StepperOnline **17HM19-2004S** | same | 5 × 8 coupler, Tr8 × 8 screw | 0.020 mm | 1.25 µm |
+| X, Y | Lin Engineering **WO-4209L-01P**, NEMA 17, 0.9° (DigiKey 2090-WO-4209L-01P-ND) | 1.7 A/phase, 0.44 N·m holding, 1.9 Ω, bipolar 4 leads, 42.4 × 42.4 × 48 mm, Ø5 × 24 mm shaft with flat, 0.32 kg | GT2 belt, 20T pulley, 40 mm/rev | 0.100 mm | 6.25 µm |
+| Z1, Z2 | Lin Engineering **WO-4209L-01P** | same | 5 × 8 coupler, Tr8 × 8 screw | 0.020 mm | 1.25 µm |
 | C | OUKEDA OK28ZK34-084B-HM5 (you have it) | 1.8°, probably 0.8 A | direct | 1.8° | 0.11° |
 | P | AFDE 42SH3402Y-200N (you have it) | 1.8°, rating not confirmed | screw through the motor | lead / 200 | lead / 3200 |
 
-Using the same NEMA 17 on X, Y and both Z screws means one spare type and one driver setting. Any stepper with a 5 mm shaft fits your 5 × 8 coupler, if you want a smaller Z motor. A NEMA 11 still has ample thrust on a Tr8 screw.
+Using the same NEMA 17 on X, Y and both Z screws means one spare type and one driver setting. StepperOnline's 17HM19-2004S (0.9°, 2.0 A, 46 N·cm, 48 mm) is a cheaper equivalent with the same mounting, but DigiKey does not sell it. Any stepper with a 5 mm shaft fits your 5 × 8 coupler, if you want a smaller Z motor. A NEMA 11 still has ample thrust on a Tr8 screw.
 
 ### Why the heads get the same accuracy as X and Y
 
@@ -279,11 +279,12 @@ Using the same NEMA 17 on X, Y and both Z screws means one spare type and one dr
 
 - **X axis:**
   - The carriage with both heads weighs roughly 2 kg, now that it carries two NEMA 17 Z motors. Accelerating it at 3 m/s² takes about 6 N, plus about 1 N of rail friction.
-  - At the pulley's 6.37 mm pitch radius, 7 N is about **4.5 N·cm**. The motor holds 46 N·cm at full current.
+  - At the pulley's 6.37 mm pitch radius, 7 N is about **4.5 N·cm**. The motor holds 44 N·cm at full current.
+  - Lin's 24 V curve (1.68 A, half-step) gives about 14 N·cm at 12.5 rev/s (500 mm/s on the belt) and about 4 N·cm at 25 rev/s. So keep fast X/Y moves at about 500 mm/s or below, where the margin is still about 3 ×.
   - Y moves a lighter load (about 1 kg).
 - **Z axes:**
   - A screw turns torque T into thrust F = 2π·η·T / lead.
-  - Trapezoidal screws are much less efficient than ball screws. Even at a cautious η = 0.3, an 8 mm lead gives 2π × 0.3 × 0.46 N·m / 0.008 m ≈ **110 N**.
+  - Trapezoidal screws are much less efficient than ball screws. Even at a cautious η = 0.3, an 8 mm lead gives 2π × 0.3 × 0.44 N·m / 0.008 m ≈ **100 N**.
   - The nozzle head weighs about 0.3 kg and the paste head about 0.5 kg, so the margin is very large.
 
 ### Speed
@@ -300,8 +301,8 @@ Use a **TMC2209** for each of the six motors. It handles 2 A RMS (2.8 A peak) on
 
 | Motor | Suggested driver current | Why |
 |---|---|---|
-| X, Y (2.0 A rated) | 1.2–1.4 A RMS | 1.4 A RMS is 2.0 A peak, so it stays within the rating whether the 2.0 A is meant as RMS or peak. It also keeps the TMC2209 below its 2 A RMS limit. |
-| Z1, Z2 (2.0 A rated) | 0.8–1.0 A RMS | Z needs little torque. Lower current keeps the carriage cooler. Keep them enabled at standstill (see the dropping issue above). |
+| X, Y (1.7 A rated) | 1.2 A RMS | 1.2 A RMS is 1.7 A peak, so it stays within the rating whether the 1.7 A is meant as RMS or peak. It is also well inside the TMC2209's 2 A RMS limit. |
+| Z1, Z2 (1.7 A rated) | 0.8–1.0 A RMS | Z needs little torque. Lower current keeps the carriage cooler. Keep them enabled at standstill (see the dropping issue above). |
 | C (rating unconfirmed) | Start at 0.4–0.55 A RMS | 0.55 A RMS is 0.8 A peak. Raise it only after you confirm the rated current. |
 | P (rating unconfirmed) | Start at 0.5 A RMS | Raise it until the plunger moves the paste reliably, staying within the motor's rating once you know it. |
 
@@ -327,7 +328,7 @@ Use a **TMC2209** for each of the six motors. It handles 2 A RMS (2.8 A peak) on
 
 | Qty | Part |
 |---|---|
-| 4 | StepperOnline 17HM19-2004S (NEMA 17, 0.9°, 2.0 A, 48 mm): X, Y, Z1, Z2 |
+| 4 | Lin Engineering WO-4209L-01P (NEMA 17, 0.9°, 1.7 A, 48 mm), DigiKey 2090-WO-4209L-01P-ND: X, Y, Z1, Z2. The 622 mm leads have no connector, so crimp the plug your driver board uses. |
 | 1 | OUKEDA OK28ZK34-084B-HM5 with rotary fitting, Juki holder and nozzle (already have) |
 | 1 | AFDE 42SH3402Y-200N (already have) |
 | 2 sets | T8 screw, 5 × 8 coupler, 2 × KP08, anti-backlash nut block (already have) |
@@ -429,7 +430,10 @@ The tape parts sit with their long axis across the tape, which is along Y. The n
   - Wiki, *Backlash Compensation*: <https://github.com/openpnp/openpnp/wiki/Backlash-Compensation>
   - Wiki, *Fiducial Locator* (visual homing): <https://github.com/openpnp/openpnp/wiki/Fiducial-Locator>
   - Forum, *Reliable Placement of 0402-Sized Components* (±0.036 mm tolerance for 0402): <https://groups.google.com/g/openpnp/c/yQYekBUfxvA>
-- **X/Y/Z motor:** StepperOnline 17HM19-2004S (NEMA 17, 0.9°, 2.0 A, 46 N·cm, 48 mm): <https://www.omc-stepperonline.com/nema-17-bipolar-0-9deg-46ncm-65-1oz-in-2a-2-9v-42x42x48mm-4-wires-17hm19-2004s>
+- **X/Y/Z motor:**
+  - Lin Engineering WO-4209L-01P on DigiKey (2090-WO-4209L-01P-ND): <https://www.digikey.com/en/products/detail/lin-engineering/WO-4209L-01P/11564466>
+  - Lin datasheet (dimensions, 24 V torque curve): <https://lin-docs.s3-us-west-2.amazonaws.com/datasheets/digi-key/hybrid-steppers/WO-4209L-01P.pdf>
+  - Cheaper non-DigiKey equivalent, StepperOnline 17HM19-2004S: <https://www.omc-stepperonline.com/nema-17-bipolar-0-9deg-46ncm-65-1oz-in-2a-2-9v-42x42x48mm-4-wires-17hm19-2004s>
 - **Drivers and stepper accuracy:**
   - Analog Devices (Trinamic), *TMC2209 datasheet* (2 A RMS / 2.8 A peak, 4.75–29 V, 256-microstep interpolation, StealthChop/SpreadCycle): <https://www.analog.com/media/en/technical-documentation/data-sheets/TMC2209_datasheet_rev1.09.pdf>
   - MICROMO, *Microstepping: Myths and Realities* (incremental torque per microstep): <https://www.micromo.com/technical-library/stepper-motor-tutorials/microstepping-myths-and-realities>

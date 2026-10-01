@@ -242,8 +242,8 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
         <tr><th>Head (X)</th><td>230 mm travel, 1 × MGN12H on the gantry beam</td></tr>
         <tr><th>Nozzle (Z1, C)</th><td>40 mm Z. C: OUKEDA OK28ZK34 hollow-shaft NEMA 11 (35.6 mm measured), rotary push-in fitting for 4 mm hose, Juki-type holder with a Juki 500-series nozzle</td></tr>
         <tr><th>Syringe (Z2)</th><td>40 mm Z. 10 cc barrel; the plunger is pushed by an AFDE 42SH3402Y NEMA 17 linear stepper (screw through the motor)</td></tr>
-        <tr><th>X/Y drive</th><td>NEMA 17 0.9° (17HM19-2004S), GT2 belt, 20T pulley: 0.1 mm per full step, 160 microsteps/mm at 1/16</td></tr>
-        <tr><th>Z drive (each head)</th><td>17HM19-2004S (0.9°) → 5 × 8 coupler → T8 screw in 2 × KP08, anti-backlash nut: 0.02 mm per full step with an 8 mm lead. Guide: Ø8 rod in 2 × SK8 with an SCS8UU</td></tr>
+        <tr><th>X/Y drive</th><td>NEMA 17 0.9° (Lin WO-4209L-01P), GT2 belt, 20T pulley: 0.1 mm per full step, 160 microsteps/mm at 1/16</td></tr>
+        <tr><th>Z drive (each head)</th><td>Lin WO-4209L-01P (0.9°) → 5 × 8 coupler → T8 screw in 2 × KP08, anti-backlash nut: 0.02 mm per full step with an 8 mm lead. Guide: Ø8 rod in 2 × SK8 with an SCS8UU</td></tr>
         <tr><th>Feeders</th><td>6 strips of 8 mm tape across the back half of the bed, 4 mm sprocket pitch</td></tr>
         <tr><th>Vacuum</th><td>Pump and valve on the outside of the right post; the hose loops over the gantry to the nozzle</td></tr>
         <tr><th>Vision</th><td>Down camera on the head (fiducials), up camera on the frame (part alignment)</td></tr>
@@ -311,7 +311,7 @@ const KP08_TOP_Z = SK8_TOP_Z + SK8[1] + 1;                 // 260
 const COUPLER_Z = KP08_TOP_Z + KP08[1] + 1;                // 274
 const MAIN_W = 180, MAIN_Z = [SK8_BOT_Z - 2, COUPLER_Z + COUPLER[1] + 1];   // [105, 300]
 const SCREW_Z = [KP08_BOT_Z - 2, COUPLER_Z + COUPLER[1] / 2], ROD_Z = [SK8_BOT_Z, SK8_TOP_Z + SK8[1]];
-// Motors: X/Y and both Z screws StepperOnline 17HM19-2004S (NEMA 17, 0.9 deg, 48 mm body)
+// Motors: X/Y and both Z screws Lin Engineering WO-4209L-01P (NEMA 17, 0.9 deg, 48 mm body; StepperOnline 17HM19-2004S is equivalent)
 const XY_MOTOR_L = 48, Z_MOTOR_L = 48, T8_LEAD = 8;
 const X_PULLEY_X = 255, Z_XBELT = 315;
 const BOTTOM_CAM_X = 150, PURGE_X = -150, REJECT_X = 95;

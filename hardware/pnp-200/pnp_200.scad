@@ -137,7 +137,7 @@ MAIN_Z = [SK8_BOT_Z - 2, COUPLER_Z + COUPLER[1] + 1];   // [105, 300]
 SCREW_Z = [KP08_BOT_Z - 2, COUPLER_Z + COUPLER[1]/2];   // T8 screw cut to about 165 mm
 ROD_Z = [SK8_BOT_Z, SK8_TOP_Z + SK8[1]];               // 8 mm rod cut to about 152 mm
 // Motors (see README, "Motors and drivers")
-XY_MOTOR_L = 48;                      // StepperOnline 17HM19-2004S: NEMA 17, 0.9 deg, 2.0 A, 48 mm body
+XY_MOTOR_L = 48;                      // Lin Engineering WO-4209L-01P: NEMA 17, 0.9 deg, 1.7 A, 48 mm body (StepperOnline 17HM19-2004S equivalent)
 Z_MOTOR_L = 48;                       // same motor on each Z screw (5 mm shaft into the 5 x 8 coupler)
 T8_LEAD = 8;                          // Tr8x8, the usual lead for OpenBuilds-type nut blocks; confirm yours
 X_PULLEY_X = 255;                     // clear of the beam end (230) by the motor half-width
