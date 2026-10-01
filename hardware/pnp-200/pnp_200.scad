@@ -3,9 +3,11 @@
 //
 // Kinematics
 //   Y  bed (board plane) moves front/back, 200 mm travel
-//   X  tool carriage moves left/right on a fixed gantry, 280 mm travel
+//   X  tool carriage moves left/right on a fixed gantry, 230 mm travel
 //   Z1 vacuum nozzle up/down, 40 mm, plus C rotation (hollow-shaft NEMA 11)
-//   Z2 paste syringe up/down, 40 mm
+//   Z2 paste syringe up/down, 40 mm; the plunger is pushed by a NEMA 17 linear stepper
+//   Each Z: T8 lead screw in two KP08 bearings + anti-backlash nut, guided by an
+//   8 mm rod in two SK8 supports with an SCS8UU bearing block
 //
 // Units: mm. +X right, +Y toward the back, +Z up.
 // Origin: centre of the frame footprint at table level.
@@ -19,7 +21,7 @@
 // Bed position Y (0 = bed fully forward)
 pose_y = 100; // [0:1:200]
 // Carriage position X (0 = far left)
-pose_x = 140; // [0:1:280]
+pose_x = 115; // [0:1:230]
 // Nozzle plunge below safe height
 pose_z_nozzle = 0; // [0:0.5:40]
 // Syringe plunge below safe height
@@ -39,7 +41,7 @@ E = 0.01;
 
 // ---------------------------------------------------------------- travel
 Y_TRAVEL = 200;
-X_TRAVEL = 280;
+X_TRAVEL = 230;
 Z_TRAVEL = 40;
 
 // ---------------------------------------------------------------- frame
@@ -98,42 +100,73 @@ TAPE_PART_OFF = -1.25;                // pocket centre from strip centre (1.75 +
 // ---------------------------------------------------------------- gantry
 POST_X = FRAME_W/2 - 10;              // 220, post centre
 TOOL_Y = 0;
-ZC_FRONT = 26;                        // Z carriage plate front face
-ZC_T = 5;
-MAIN_FRONT = ZC_FRONT + ZC_T + g_H(MGN9);   // 41, main carriage plate front face
+ZC_FRONT = 24;                        // Z plate front face (tools mount here)
+ZC_T = 6;                             // Z plate thickness
+
+// Z guide and drive for each head (the photographed parts), behind the Z plate.
+SCS8UU  = [34, 30, 22, 11];           // bearing block: width X, length Z, height Y, shaft height
+SK8     = [42, 14, 32.8, 20, 21];     // shaft support: width X, thickness Z, height Y, shaft height, tower width
+KP08    = [55, 13, 28, 15];           // pillow block: length X, width Z, height Y, centre height
+NUT_BLK = [34, 36, 12];               // anti-backlash nut block (OpenBuilds type): X, Z, Y
+COUPLER = [19, 25];                   // flexible coupler 5 x 8 mm: diameter, length
+SCS_SPACER = 3;                       // under the SCS8UU, so the SK8 clears the Z plate
+ROD_DX = 26;                          // guide rod beside the screw, on the outer side of each head
+ROD_Y = ZC_FRONT + ZC_T + SCS_SPACER + SCS8UU[3];   // 44
+MAIN_FRONT = ROD_Y + SK8[3];          // 64, main carriage plate front face
+SCREW_Y = MAIN_FRONT - KP08[3];       // 49
+NUT_SPACER = SCREW_Y - NUT_BLK[2]/2 - (ZC_FRONT + ZC_T);   // 13, under the nut block
 MAIN_T = 8;
-XRAIL_SEAT = MAIN_FRONT + MAIN_T + g_H(MGN12); // 62, beam front face
-BEAM_Y = XRAIL_SEAT + 10;             // 72, beam centre (20 deep)
+XRAIL_SEAT = MAIN_FRONT + MAIN_T + g_H(MGN12); // 85, beam front face
+BEAM_Y = XRAIL_SEAT + 10;             // 95, beam centre (20 deep)
 Z_BEAM = 280;                         // beam centre (40 tall)
 Z_POST_TOP = Z_BEAM - 20;             // 260
-MAIN_W = 120;
-MAIN_Z = [130, 330];
-TOOL_DX = 35;                         // nozzle at +35, syringe at -35
+TOOL_DX = 40;                         // nozzle at +40, syringe at -40
 Z_TIP_SAFE = 121;                     // tool tip height at Z = 0
-Z_RAIL_Z = [140, 310];
-SCREW_Y = 21;
+Z_TIP_LOW = Z_TIP_SAFE - Z_TRAVEL;    // 81
+// Moving parts are placed above the tool tip; fixed parts in machine Z.
+ZP_Z = [25, 125];                     // Z plate, above the tip
+NUT_Z0 = 56;                          // nut block bottom, above the tip
+SCS_Z0 = NUT_Z0 + NUT_BLK[1];         // 92, SCS8UU bottom, above the tip
+KP08_BOT_Z = Z_TIP_LOW + NUT_Z0 - 2 - KP08[1];       // 122, just below the nut at full plunge
+SK8_BOT_Z  = KP08_BOT_Z - 1 - SK8[1];                // 107
+SK8_TOP_Z  = Z_TIP_SAFE + SCS_Z0 + SCS8UU[1] + 2;    // 245, just above the SCS8UU at safe height
+KP08_TOP_Z = SK8_TOP_Z + SK8[1] + 1;                 // 260
+COUPLER_Z  = KP08_TOP_Z + KP08[1] + 1;               // 274
+MAIN_W = 180;
+MAIN_Z = [SK8_BOT_Z - 2, COUPLER_Z + COUPLER[1] + 1];   // [105, 300]
+SCREW_Z = [KP08_BOT_Z - 2, COUPLER_Z + COUPLER[1]/2];   // T8 screw cut to about 165 mm
+ROD_Z = [SK8_BOT_Z, SK8_TOP_Z + SK8[1]];               // 8 mm rod cut to about 152 mm
 // Motors (see README, "Motors and drivers")
 XY_MOTOR_L = 48;                      // StepperOnline 17HM19-2004S: NEMA 17, 0.9 deg, 2.0 A, 48 mm body
-Z_MOTOR_L = 46;                       // StepperOnline 11E18S1004BAM5-150RS: NEMA 11 external linear, 46 mm body
-Z_SCREW_D = 6;                        //   ball screw diameter
-Z_SCREW_LEN = 150;                    //   ball screw length, 2 mm lead
+Z_MOTOR_L = 48;                       // same motor on each Z screw (5 mm shaft into the 5 x 8 coupler)
+T8_LEAD = 8;                          // Tr8x8, the usual lead for OpenBuilds-type nut blocks; confirm yours
 X_PULLEY_X = 255;                     // clear of the beam end (230) by the motor half-width
 Z_XBELT = 315;
 
 // ---------------------------------------------------------------- fixed stations on the tool line
-BOTTOM_CAM_X = 160;
-PURGE_X = -160;
-REJECT_X = 110;
+BOTTOM_CAM_X = 150;
+PURGE_X = -150;
+REJECT_X = 95;
 
 // ---------------------------------------------------------------- nozzle head (C axis)
-// OUKEDA OK28ZK34-084B-HM5 as photographed: 28 mm frame, 34 mm body, hollow shaft,
-// rotary push-in fitting for 4 mm tube on the rear M5 thread. Stack sizes above the
-// motor are estimated from the photo.
+// OUKEDA OK28ZK34-084B-HM5 as photographed: 28 mm frame, 35.6 mm measured over body and
+// front boss, hollow shaft, rotary push-in fitting for 4 mm tube on the rear M5 thread.
+// Juki-type holder with a Juki 500-series nozzle below. Sizes other than the caliper reading
+// are scaled from the photos (+/- 2 mm).
 C_MOTOR_S = 28;
-C_MOTOR_L = 34;
-NOZ_MOTOR_Z = 31;                     // motor face (down) above the nozzle tip
-NOZ_TOP = NOZ_MOTOR_Z + C_MOTOR_L + 37;   // 102, top of the push-in fitting above the tip
-PUMP_IN = [251, 67, 209];             // hose port on the valve, outside the right post
+C_MOTOR_L = 35.6;                     // measured: body 34 + front boss 1.6
+C_MOTOR_BOSS = 1.6;
+NOZ_MOTOR_Z = 37;                     // bottom of the motor boss above the nozzle tip
+C_REAR_STACK = 39.9;                  // sleeve, hex, bearing, rotary body, fitting, collar
+NOZ_TOP = NOZ_MOTOR_Z + C_MOTOR_L + C_REAR_STACK;   // 112.5, top of the push-in fitting above the tip
+PUMP_IN = [251, BEAM_Y - 5, 209];     // hose port on the valve, outside the right post
+
+// ---------------------------------------------------------------- paste head
+// AFDE 42SH3402Y-200N as photographed: NEMA 17 non-captive linear stepper (lead screw through
+// the motor), 34 mm body, 200 mm screw. It pushes the syringe plunger.
+PASTE_MOTOR_L = 34;
+PASTE_SCREW = [8, 200];               // diameter, length
+PASTE_LEVEL = 0.6;                    // share of the barrel still full (model only)
 
 // ---------------------------------------------------------------- colours
 C_ALU    = [0.78, 0.80, 0.83];
@@ -154,10 +187,13 @@ C_RUBBER = [0.10, 0.10, 0.10];
 C_HOSE   = [0.20, 0.45, 0.85];
 C_WHITE  = [0.94, 0.94, 0.92];
 C_STEEL  = [0.78, 0.79, 0.80];
+C_POM    = [0.10, 0.10, 0.11];
+C_ZINC   = [0.66, 0.67, 0.69];
+C_JUKI   = [0.15, 0.55, 0.32];
 
 // ---------------------------------------------------------------- pose
 function pose() = animate ? [
-    lookup($t, [[0, 140], [0.45, 140], [0.55, 30], [0.72, 265], [0.85, 140], [1, 140]]),
+    lookup($t, [[0, 115], [0.45, 115], [0.55, 20], [0.72, 215], [0.85, 115], [1, 115]]),
     lookup($t, [[0, 100], [0.15, 10], [0.35, 190], [0.45, 100], [1, 100]]),
     lookup($t, [[0, 0], [0.86, 0], [0.89, 25], [0.92, 0], [1, 0]]),
     lookup($t, [[0, 0], [0.93, 0], [0.96, 25], [0.99, 0], [1, 0]]),
@@ -168,6 +204,9 @@ assert(BED_D <= Y_TRAVEL, "bed deeper than Y travel: tools cannot reach its full
 assert(BED_D/2 + Y_TRAVEL/2 < Y_PULLEY_Y - 21.15, "bed hits the Y motor at the end of travel");
 assert(MAIN_W/2 + X_TRAVEL/2 < POST_X - 10, "carriage hits the posts at end of X travel");
 assert(Z_TIP_SAFE - Z_TRAVEL < Z_PCB_TOP, "Z travel does not reach the board");
+assert(MAIN_FRONT - SK8[2] > ZC_FRONT + ZC_T, "SK8 support reaches into the Z plate");
+assert(SCREW_Y - KP08[2] + KP08[3] > ZC_FRONT + ZC_T, "KP08 reaches into the Z plate");
+assert(MAIN_Z[0] > Z_TAPE_TOP + 5, "carriage plate too close to the bed");
 
 // =================================================================== helpers
 module box(p0, p1) translate(p0) cube([p1[0]-p0[0], p1[1]-p0[1], p1[2]-p0[2]]);
@@ -227,8 +266,19 @@ module stepper(S, len, pilot_d, shaft_d, shaft_l, hollow=0) {
 }
 module nema17(len=XY_MOTOR_L) stepper(42.3, len, 22, 5, 22);
 // NEMA 11 external linear actuator: the ball screw is the motor shaft
-module nema11_linear(len=Z_MOTOR_L) stepper(28, len, 22, Z_SCREW_D, 0.1);
-module nema11_hollow(len=C_MOTOR_L) stepper(C_MOTOR_S, len, 22, 5, 0.1, hollow=3);
+module nema11_hollow() stepper(C_MOTOR_S, C_MOTOR_L - C_MOTOR_BOSS, 22, 5, 0.1, hollow=3);
+module nema17_linear() stepper(42.3, PASTE_MOTOR_L, 22, PASTE_SCREW[0], 0.1);
+
+// Z drive parts, in the carriage frame: front face of the carriage plate at y = MAIN_FRONT
+module kp08(z) color(C_ZINC) translate([0, 0, z]) {
+  box([-KP08[0]/2, MAIN_FRONT-5, 0], [KP08[0]/2, MAIN_FRONT, KP08[1]]);
+  box([-13, SCREW_Y, 0], [13, MAIN_FRONT, KP08[1]]);
+  translate([0, SCREW_Y, 0]) cylinder(d=2*(KP08[2]-KP08[3]), h=KP08[1]);
+}
+module sk8(z) color(C_ALU) translate([0, 0, z]) {
+  box([-SK8[0]/2, MAIN_FRONT-6, 0], [SK8[0]/2, MAIN_FRONT, SK8[1]]);
+  box([-SK8[4]/2, MAIN_FRONT-SK8[2], 0], [SK8[4]/2, MAIN_FRONT, SK8[1]]);
+}
 
 // GT2 pulley, 20 teeth: pitch diameter 20*2/pi = 12.73 mm, 40 mm per revolution
 GT2_PD = 20*2/PI;
@@ -434,17 +484,21 @@ module x_carriage(z1, z2, c) {
   // main plate
   color(C_PLATE) box([-MAIN_W/2, MAIN_FRONT, MAIN_Z[0]], [MAIN_W/2, MAIN_FRONT+MAIN_T, MAIN_Z[1]]);
   // belt clamp reaching back over the beam to the front run of the X belt
-  color(C_PRINT) {
-    box([-12, MAIN_FRONT+MAIN_T, MAIN_Z[1]-10], [12, BEAM_Y - GT2_PD/2 + 3, MAIN_Z[1]]);
-    box([-12, BEAM_Y - GT2_PD/2 - 6, Z_XBELT-5], [12, BEAM_Y - GT2_PD/2 + 3, MAIN_Z[1]]);
-  }
+  color(C_PRINT) box([-12, MAIN_FRONT+MAIN_T, MAIN_Z[1]+2], [12, BEAM_Y - GT2_PD/2 + 3, Z_XBELT+7]);
   // motor shelf
-  color(C_PRINT) box([-MAIN_W/2, -12, MAIN_Z[1]], [MAIN_W/2, MAIN_FRONT+MAIN_T, MAIN_Z[1]+4]);
-  // Z rails and Z motors (NEMA 11 linear actuators, ball screw pointing down)
+  color(C_PRINT) box([-MAIN_W/2, ZC_FRONT, MAIN_Z[1]], [MAIN_W/2, MAIN_FRONT+MAIN_T, MAIN_Z[1]+4]);
+  // Z drive and guide for each head; s = +1 nozzle (right), -1 syringe (left), rods on the outer sides
   for (s=[-1,1]) translate([s*TOOL_DX, 0, 0]) {
-    translate([0, MAIN_FRONT, (Z_RAIL_Z[0]+Z_RAIL_Z[1])/2]) rotate([0,0,90]) rotate([0,-90,0]) mgn_rail(MGN9, Z_RAIL_Z[1]-Z_RAIL_Z[0]);
-    translate([0, SCREW_Y, MAIN_Z[1]+4]) rotate([180,0,0]) nema11_linear();
-    color(C_STEEL) translate([0, SCREW_Y, MAIN_Z[1]+4-Z_SCREW_LEN]) cylinder(d=Z_SCREW_D, h=Z_SCREW_LEN-4);
+    kp08(KP08_BOT_Z);
+    kp08(KP08_TOP_Z);
+    color(C_STEEL) translate([0, SCREW_Y, SCREW_Z[0]]) cylinder(d=8, h=SCREW_Z[1]-SCREW_Z[0]);
+    color(C_ALU) translate([0, SCREW_Y, COUPLER_Z]) cylinder(d=COUPLER[0], h=COUPLER[1]);
+    translate([0, SCREW_Y, MAIN_Z[1]+4]) rotate([180,0,0]) nema17(Z_MOTOR_L);
+    translate([s*ROD_DX, 0, 0]) {
+      sk8(SK8_BOT_Z);
+      sk8(SK8_TOP_Z);
+      color(C_STEEL) translate([0, ROD_Y, ROD_Z[0]]) cylinder(d=8, h=ROD_Z[1]-ROD_Z[0]);
+    }
   }
   // top (down-looking) camera between the tools
   color(C_PRINT) box([-10, 15, 160], [10, MAIN_FRONT, 172]);
@@ -452,69 +506,93 @@ module x_carriage(z1, z2, c) {
   color(C_CAP) translate([0, 0, 140]) cylinder(d=12, h=10);
   color([0.9, 0.9, 0.95]) translate([0, 0, 138]) difference() { cylinder(d=30, h=3); translate([0,0,-1]) cylinder(d=16, h=5); }
   // tools
-  translate([TOOL_DX, TOOL_Y, Z_TIP_SAFE - z1]) { z_stage(); nozzle_head(c); }
-  translate([-TOOL_DX, TOOL_Y, Z_TIP_SAFE - z2]) { z_stage(); syringe(); }
+  translate([TOOL_DX, TOOL_Y, Z_TIP_SAFE - z1]) { z_stage(1); nozzle_head(c); }
+  translate([-TOOL_DX, TOOL_Y, Z_TIP_SAFE - z2]) { z_stage(-1); syringe(); }
 }
 
-// Z carriage for one tool, local origin at the tool tip
-module z_stage() {
-  // MGN9 block, its rail seat is the main plate front face
-  translate([0, MAIN_FRONT, 85]) rotate([0,0,90]) rotate([0,-90,0]) mgn_block(MGN9);
-  color(C_PLATE) box([-15, ZC_FRONT, 25], [15, ZC_FRONT+ZC_T, 140]);
-  // ball nut in its bracket
-  color(C_BRASS) box([-8, 14, 128], [8, ZC_FRONT, 140]);
+// Z plate for one tool, local origin at the tool tip; s = side of the guide rod
+module z_stage(s) {
+  zb = ZC_FRONT + ZC_T;               // back face of the Z plate
+  xr = s*ROD_DX;
+  color(C_PLATE) box([s>0 ? -20 : -ROD_DX-19, ZC_FRONT, ZP_Z[0]], [s>0 ? ROD_DX+19 : 20, zb, ZP_Z[1]]);
+  // anti-backlash nut block on two spacers
+  color(C_ALU) for (x=[-10, 10]) translate([x, zb, NUT_Z0 + NUT_BLK[1]/2]) rotate([-90,0,0]) cylinder(d=8, h=NUT_SPACER);
+  color(C_POM) difference() {
+    box([-NUT_BLK[0]/2, SCREW_Y - NUT_BLK[2]/2, NUT_Z0], [NUT_BLK[0]/2, SCREW_Y + NUT_BLK[2]/2, NUT_Z0 + NUT_BLK[1]]);
+    box([-NUT_BLK[0]/2 - 1, SCREW_Y - NUT_BLK[2]/2 - 1, NUT_Z0 + 8], [NUT_BLK[0]/2 - 8, SCREW_Y + NUT_BLK[2]/2 + 1, NUT_Z0 + 10]);
+    translate([0, SCREW_Y, NUT_Z0 - 1]) cylinder(d=8, h=NUT_BLK[1] + 2);
+  }
+  // SCS8UU on a spacer, riding on the guide rod
+  color(C_ALU) box([xr - SCS8UU[0]/2, zb, SCS_Z0], [xr + SCS8UU[0]/2, zb + SCS_SPACER, SCS_Z0 + SCS8UU[1]]);
+  color(C_ZINC) difference() {
+    box([xr - SCS8UU[0]/2, zb + SCS_SPACER, SCS_Z0], [xr + SCS8UU[0]/2, zb + SCS_SPACER + SCS8UU[2], SCS_Z0 + SCS8UU[1]]);
+    translate([xr, ROD_Y, SCS_Z0 - 1]) cylinder(d=8.2, h=SCS8UU[1] + 2);
+  }
 }
 
 // Vacuum nozzle head: NEMA 11 hollow-shaft motor turns the nozzle (C axis).
 // Vacuum enters through the rotary push-in fitting on top and runs down the hollow shaft.
 module nozzle_head(c) {
-  z0 = NOZ_MOTOR_Z;
+  z0 = NOZ_MOTOR_Z + C_MOTOR_BOSS;    // motor mounting face
+  zt = NOZ_MOTOR_Z + C_MOTOR_L;       // motor rear face
   color(C_PRINT) difference() {
     union() {
       box([-17, -16, z0-4], [17, ZC_FRONT, z0]);
-      // two side cheeks: the Z ball screw passes between them
-      for (s=[-1,1]) box([s>0 ? 5 : -17, ZC_FRONT-4, z0-4], [s>0 ? 17 : -5, ZC_FRONT, z0+C_MOTOR_L]);
+      box([-17, ZC_FRONT-4, z0-4], [17, ZC_FRONT, zt]);
     }
     translate([0,0,z0-5]) cylinder(d=23, h=6);
   }
   translate([0, 0, z0]) rotate([180,0,0]) nema11_hollow();
-  // rear stack, estimated from the photo: shaft sleeve, M5 hex, bearing, rotary body, push-in fitting, release collar
-  zt = z0 + C_MOTOR_L;
+  // rear stack, scaled from the photo against the 35.6 mm caliper reading
   color(C_STEEL) {
-    translate([0,0,zt]) cylinder(d=6, h=6);
-    translate([0,0,zt+6]) cylinder(d=8/cos(30), h=5, $fn=6);
-    translate([0,0,zt+11]) cylinder(d=11, h=3);
+    translate([0,0,zt]) cylinder(d=6, h=2);
+    translate([0,0,zt+2]) cylinder(d=8/cos(30), h=5.7, $fn=6);
+    translate([0,0,zt+7.7]) cylinder(d=11, h=4);
   }
   color(C_WHITE) {
-    translate([0,0,zt+14]) cylinder(d=12, h=11);
-    translate([0,0,zt+25]) cylinder(d=8.5, h=7);
+    translate([0,0,zt+11.7]) cylinder(d=11, h=13.8);
+    translate([0,0,zt+25.5]) cylinder(d=9.8, h=9.8);
   }
-  color(C_HOSE) translate([0,0,zt+32]) cylinder(d=10, h=5);
-  // rotating part: Juki-style holder on the 5 mm front shaft + nozzle
+  color(C_HOSE) translate([0,0,zt+35.3]) cylinder(d=10.3, h=C_REAR_STACK-35.3);
+  // rotating part: Juki-type holder and Juki 500-series nozzle
   rotate([0,0,c]) {
-    color(C_LAM) translate([0,0,z0-3]) cylinder(d=5, h=3);
-    color(C_LAM) difference() { translate([0,0,16]) cylinder(d=10, h=11); translate([3.6,-6,15]) cube([4,12,13]); }
-    color(C_CAP) translate([0,0,9]) cylinder(d=5, h=7);
-    color(C_LAM) translate([0,0,5]) cylinder(d1=1.6, d2=5, h=4);
-    color(C_LAM) cylinder(d=1.0, h=5, $fn=12);
+    color(C_BRASS) translate([0,0,27.5]) cylinder(d=9, h=NOZ_MOTOR_Z-27.5);
+    color(C_JUKI) translate([0,0,25.5]) cylinder(d=12, h=2);
+    color(C_BRASS) translate([0,0,18.5]) cylinder(d=8, h=7);
+    color(C_JUKI) difference() { translate([0,0,12]) cylinder(d=15, h=6.5); translate([5.5,-1,17.5]) cube([3,2,2]); }
+    color(C_STEEL) translate([0,0,6.5]) cylinder(d=4.5, h=5.5);
+    color(C_CAP) cylinder(d1=0.7, d2=3.5, h=6.5, $fn=16);
   }
 }
 
-// Paste syringe: 10 cc barrel on a pneumatic adapter, luer-lock needle
+// Paste head: 10 cc barrel and luer needle. The plunger is pushed by the NEMA 17 non-captive
+// linear stepper standing on a bracket above the barrel; its screw passes through the motor.
 module syringe() {
+  piston = 21 + 85*PASTE_LEVEL;
   color(C_LAM) cylinder(d=0.8, h=13, $fn=10);
   color([0.20, 0.45, 0.85]) translate([0,0,13]) cylinder(d1=3, d2=6, h=7);
-  color(C_PASTE) translate([0,0,21]) cylinder(d=17, h=59);
-  color([0.95,0.95,0.95]) translate([0,0,80]) cylinder(d=17, h=4);
+  color(C_PASTE) translate([0,0,21]) cylinder(d=17, h=piston-21);
+  color(C_WHITE) translate([0,0,piston]) cylinder(d=17, h=4);
   color(C_BARREL) difference() { translate([0,0,20]) cylinder(d=19, h=90, $fn=40); translate([0,0,21]) cylinder(d=17.2, h=90, $fn=40); }
   color(C_BARREL) translate([-15, -10, 110]) cube([30, 20, 2]);
-  color([0.20, 0.22, 0.25]) translate([0,0,112]) cylinder(d=22, h=14);
-  color([0.85, 0.85, 0.80, 0.8]) translate([0,0,126]) cylinder(d=5, h=10);
-  // clamps to the Z carriage
+  // pusher disc and the motor's lead screw
+  color(C_STEEL) {
+    translate([0,0,piston+4]) cylinder(d=12, h=3);
+    translate([0,0,piston+7]) cylinder(d=PASTE_SCREW[0], h=PASTE_SCREW[1]);
+  }
+  // bracket: back plate on the Z plate, shelf under the motor
+  color(C_PRINT) difference() {
+    union() {
+      box([-22, ZC_FRONT-4, 40], [22, ZC_FRONT, 122]);
+      box([-22, -22, 118], [22, ZC_FRONT, 122]);
+    }
+    translate([0,0,117]) cylinder(d=23, h=6);
+  }
+  translate([0, 0, 122]) rotate([180,0,0]) nema17_linear();
+  // barrel clamps
   color(C_PRINT) for (z=[40, 95]) {
     translate([0,0,z]) difference() { cylinder(d=25, h=6); translate([0,0,-1]) cylinder(d=19.2, h=8); }
-    // two arms per clamp, leaving a slot for the Z ball screw
-    for (s=[-1,1]) box([s>0 ? 4 : -10, 9, z], [s>0 ? 10 : -4, ZC_FRONT, z+6]);
+    box([-6, 9, z], [6, ZC_FRONT-4, z+6]);
   }
 }
 
@@ -558,7 +636,8 @@ module pnp_200(p) {
 P = pose();
 echo(str("PnP-200 pose X=", P[0], " Y=", P[1], " Z1=", P[2], " Z2=", P[3], " C=", P[4]));
 echo(str("Frame ", FRAME_W, " x ", FRAME_D, " mm (", 2*(X_PULLEY_X+26), " mm wide over the X drive, ", POST_X+49, " mm to the pump side), top of Z motors at ", MAIN_Z[1]+4+Z_MOTOR_L, " mm"));
+echo(str("Z stack: KP08 at ", KP08_BOT_Z, " and ", KP08_TOP_Z, ", SK8 at ", SK8_BOT_Z, " and ", SK8_TOP_Z, ", T8 screw ", SCREW_Z[1]-SCREW_Z[0], " mm, rod ", ROD_Z[1]-ROD_Z[0], " mm, nut spacer ", NUT_SPACER, " mm"));
 echo(str("Bed ", BED_W, " x ", BED_D, " mm, board fixture ", PCB_W, " x ", PCB_D, " mm"));
 echo(str("X/Y: 0.9 deg motor, GT2 20T = ", 20*2, " mm/rev: ", 20*2/400, " mm per full step, ", 400*16/(20*2), " microsteps/mm at 1/16"));
-echo(str("Z: 1.8 deg motor, 2 mm-lead ball screw: ", 2/200, " mm per full step, ", 200*16/2, " microsteps/mm at 1/16"));
+echo(str("Z: 0.9 deg motor, Tr8 lead ", T8_LEAD, " mm: ", T8_LEAD/400, " mm per full step, ", 400*16/T8_LEAD, " microsteps/mm at 1/16"));
 pnp_200(P);

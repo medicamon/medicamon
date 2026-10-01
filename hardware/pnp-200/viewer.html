@@ -181,7 +181,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
     <section>
       <p class="eyebrow">Position readout</p>
       <div class="dro" aria-live="off">
-        <div class="dro-row"><span class="ax">X</span><span class="val" id="dro-x">140.00</span><span class="unit">mm</span></div>
+        <div class="dro-row"><span class="ax">X</span><span class="val" id="dro-x">115.00</span><span class="unit">mm</span></div>
         <div class="dro-row"><span class="ax">Y</span><span class="val" id="dro-y">100.00</span><span class="unit">mm</span></div>
         <div class="dro-row"><span class="ax">Z1</span><span class="val" id="dro-z1">0.00</span><span class="unit">mm</span></div>
         <div class="dro-row"><span class="ax">Z2</span><span class="val" id="dro-z2">0.00</span><span class="unit">mm</span></div>
@@ -216,7 +216,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
     <section>
       <p class="eyebrow">Jog axes</p>
       <div class="jog">
-        <label><b>X</b><input type="range" id="jog-x" min="0" max="280" step="0.5" value="140"><output id="out-x">140.0</output></label>
+        <label><b>X</b><input type="range" id="jog-x" min="0" max="230" step="0.5" value="115"><output id="out-x">115.0</output></label>
         <label><b>Y</b><input type="range" id="jog-y" min="0" max="200" step="0.5" value="100"><output id="out-y">100.0</output></label>
         <label><b>Z1</b><input type="range" id="jog-z1" min="0" max="40" step="0.25" value="0"><output id="out-z1">0.0</output></label>
         <label><b>Z2</b><input type="range" id="jog-z2" min="0" max="40" step="0.25" value="0"><output id="out-z2">0.0</output></label>
@@ -236,18 +236,18 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
     <section>
       <p class="eyebrow">Key numbers</p>
       <table class="spec">
-        <tr><th>Frame</th><td>460 × 480 mm (562 mm wide over the X drive), 380 mm tall to the Z motors; 2040/2020 extrusion</td></tr>
+        <tr><th>Frame</th><td>460 × 480 mm (562 mm wide over the X drive), 352 mm tall to the Z motors; 2040/2020 extrusion</td></tr>
         <tr><th>Bed (Y)</th><td>140 × 186 mm plate, 200 mm travel, 2 × MGN12 rails, 4 × MGN12H blocks</td></tr>
         <tr><th>Board</th><td>100 × 80 mm pocket on the front half of the bed, board top 96 mm above the table</td></tr>
-        <tr><th>Head (X)</th><td>280 mm travel, 1 × MGN12H on the gantry beam</td></tr>
-        <tr><th>Nozzle (Z1, C)</th><td>40 mm on MGN9H, NEMA 11 linear actuator with a 2 mm-lead ball screw. C: OUKEDA OK28ZK34 hollow-shaft NEMA 11 (28 × 28 × 34 mm) with a rotary push-in fitting for 4 mm hose</td></tr>
-        <tr><th>Syringe (Z2)</th><td>40 mm on MGN9H, 10 cc barrel, air-pressure dispensing</td></tr>
+        <tr><th>Head (X)</th><td>230 mm travel, 1 × MGN12H on the gantry beam</td></tr>
+        <tr><th>Nozzle (Z1, C)</th><td>40 mm Z. C: OUKEDA OK28ZK34 hollow-shaft NEMA 11 (35.6 mm measured), rotary push-in fitting for 4 mm hose, Juki-type holder with a Juki 500-series nozzle</td></tr>
+        <tr><th>Syringe (Z2)</th><td>40 mm Z. 10 cc barrel; the plunger is pushed by an AFDE 42SH3402Y NEMA 17 linear stepper (screw through the motor)</td></tr>
         <tr><th>X/Y drive</th><td>NEMA 17 0.9° (17HM19-2004S), GT2 belt, 20T pulley: 0.1 mm per full step, 160 microsteps/mm at 1/16</td></tr>
-        <tr><th>Z drive</th><td>NEMA 11 linear (11E18S1004BAM5-150RS), 2 mm ball screw: 0.01 mm per full step, 1600 microsteps/mm at 1/16</td></tr>
+        <tr><th>Z drive (each head)</th><td>17HM19-2004S (0.9°) → 5 × 8 coupler → T8 screw in 2 × KP08, anti-backlash nut: 0.02 mm per full step with an 8 mm lead. Guide: Ø8 rod in 2 × SK8 with an SCS8UU</td></tr>
         <tr><th>Feeders</th><td>6 strips of 8 mm tape across the back half of the bed, 4 mm sprocket pitch</td></tr>
         <tr><th>Vacuum</th><td>Pump and valve on the outside of the right post; the hose loops over the gantry to the nozzle</td></tr>
         <tr><th>Vision</th><td>Down camera on the head (fiducials), up camera on the frame (part alignment)</td></tr>
-        <tr><th>Tool offsets</th><td>Nozzle +35 mm, syringe −35 mm, camera 0 in X</td></tr>
+        <tr><th>Tool offsets</th><td>Nozzle +40 mm, syringe −40 mm, camera 0 in X</td></tr>
       </table>
       <p class="note">Concept model for layout and clearances. Rail, motor and pulley sizes follow HIWIN MGN and NEMA catalogue values; check the datasheets for the parts you buy before machining.</p>
     </section>
@@ -273,7 +273,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 // ============================================================ parameters
 // Same values and names as pnp_200.scad. Units: mm. Machine frame: +X right, +Y back, +Z up.
-const Y_TRAVEL = 200, X_TRAVEL = 280, Z_TRAVEL = 40;
+const Y_TRAVEL = 200, X_TRAVEL = 230, Z_TRAVEL = 40;
 const FRAME_W = 460, FRAME_D = 480, FOOT_H = 8, BASE_H = 40, PLATE_T = 6;
 const Z_BASE_TOP = FOOT_H + BASE_H, Z_PLATE = Z_BASE_TOP + PLATE_T;
 // HIWIN MGN catalogue values
@@ -288,20 +288,40 @@ const Z_PCB_TOP = Z_BED_TOP + FIX_T;
 const FEEDER_N = 6, FEEDER_Y0 = 20, FEEDER_PITCH = 13, FEEDER_X = [-65, 65];   // strips across the bed, tape along X
 const TAPE_PART_OFF = -1.25;   // pocket centre from strip centre: 1.75 + 3.5 mm from the hole-side edge (EIA-481)
 const Z_TAPE_TOP = Z_BED_TOP + 4, POCKET = 4;
-const POST_X = FRAME_W / 2 - 10, ZC_FRONT = 26, ZC_T = 5;
-const MAIN_FRONT = ZC_FRONT + ZC_T + MGN9.H, MAIN_T = 8;
+const POST_X = FRAME_W / 2 - 10, ZC_FRONT = 24, ZC_T = 6;
+// Z guide and drive for each head (photographed parts), behind the Z plate
+const SCS8UU = [34, 30, 22, 11];          // width X, length Z, height Y, shaft height
+const SK8 = [42, 14, 32.8, 20, 21];       // width X, thickness Z, height Y, shaft height, tower width
+const KP08 = [55, 13, 28, 15];            // length X, width Z, height Y, centre height
+const NUT_BLK = [34, 36, 12];             // anti-backlash nut block (OpenBuilds type): X, Z, Y
+const COUPLER = [19, 25];                 // 5 x 8 mm flexible coupler: diameter, length
+const SCS_SPACER = 3, ROD_DX = 26;
+const ROD_Y = ZC_FRONT + ZC_T + SCS_SPACER + SCS8UU[3];   // 44
+const MAIN_FRONT = ROD_Y + SK8[3], MAIN_T = 8;            // 64
+const SCREW_Y = MAIN_FRONT - KP08[3];                      // 49
+const NUT_SPACER = SCREW_Y - NUT_BLK[2] / 2 - (ZC_FRONT + ZC_T);   // 13
 const XRAIL_SEAT = MAIN_FRONT + MAIN_T + MGN12.H;
 const BEAM_Y = XRAIL_SEAT + 10, Z_BEAM = 280, Z_POST_TOP = Z_BEAM - 20;
-const MAIN_W = 120, MAIN_Z = [130, 330], TOOL_DX = 35, Z_TIP_SAFE = 121;
-// Motors: X/Y StepperOnline 17HM19-2004S (NEMA 17, 0.9 deg, 48 mm body);
-// Z1/Z2 StepperOnline 11E18S1004BAM5-150RS (NEMA 11 external linear, 46 mm body, 6 mm ball screw, 2 mm lead, 150 mm)
-const XY_MOTOR_L = 48, Z_MOTOR_L = 46, Z_SCREW_D = 6, Z_SCREW_LEN = 150;
-const Z_RAIL_Z = [140, 310], SCREW_Y = 21, X_PULLEY_X = 255, Z_XBELT = 315;
-const BOTTOM_CAM_X = 160, PURGE_X = -160, REJECT_X = 110;
-// Nozzle head: OUKEDA OK28ZK34-084B-HM5 as photographed (28 mm frame, 34 mm body, hollow shaft,
-// rotary push-in fitting for 4 mm tube on the rear M5 thread). Sizes above the motor are estimated from the photo.
-const C_MOTOR_S = 28, C_MOTOR_L = 34, NOZ_MOTOR_Z = 31, NOZ_TOP = NOZ_MOTOR_Z + C_MOTOR_L + 37;
-const PUMP_IN = [251, 67, 209];
+const TOOL_DX = 40, Z_TIP_SAFE = 121, Z_TIP_LOW = Z_TIP_SAFE - Z_TRAVEL;
+const ZP_Z = [25, 125], NUT_Z0 = 56, SCS_Z0 = NUT_Z0 + NUT_BLK[1];
+const KP08_BOT_Z = Z_TIP_LOW + NUT_Z0 - 2 - KP08[1];      // 122
+const SK8_BOT_Z = KP08_BOT_Z - 1 - SK8[1];                 // 107
+const SK8_TOP_Z = Z_TIP_SAFE + SCS_Z0 + SCS8UU[1] + 2;     // 245
+const KP08_TOP_Z = SK8_TOP_Z + SK8[1] + 1;                 // 260
+const COUPLER_Z = KP08_TOP_Z + KP08[1] + 1;                // 274
+const MAIN_W = 180, MAIN_Z = [SK8_BOT_Z - 2, COUPLER_Z + COUPLER[1] + 1];   // [105, 300]
+const SCREW_Z = [KP08_BOT_Z - 2, COUPLER_Z + COUPLER[1] / 2], ROD_Z = [SK8_BOT_Z, SK8_TOP_Z + SK8[1]];
+// Motors: X/Y and both Z screws StepperOnline 17HM19-2004S (NEMA 17, 0.9 deg, 48 mm body)
+const XY_MOTOR_L = 48, Z_MOTOR_L = 48, T8_LEAD = 8;
+const X_PULLEY_X = 255, Z_XBELT = 315;
+const BOTTOM_CAM_X = 150, PURGE_X = -150, REJECT_X = 95;
+// Nozzle head: OUKEDA OK28ZK34-084B-HM5 (35.6 mm measured over body and front boss), rotary push-in
+// fitting for 4 mm tube on the rear M5 thread, Juki-type holder and Juki 500-series nozzle. Scaled from the photos.
+const C_MOTOR_S = 28, C_MOTOR_L = 35.6, C_MOTOR_BOSS = 1.6, NOZ_MOTOR_Z = 37, C_REAR_STACK = 39.9;
+const NOZ_TOP = NOZ_MOTOR_Z + C_MOTOR_L + C_REAR_STACK;   // 112.5
+// Paste head: AFDE 42SH3402Y-200N NEMA 17 non-captive linear stepper (34 mm body, 8 x 200 mm screw) pushes the plunger
+const PASTE_MOTOR_L = 34, PASTE_SCREW = [8, 200], PASTE_LEVEL = 0.6;
+const PUMP_IN = [251, BEAM_Y - 5, 209];
 const GT2_PD = 20 * 2 / Math.PI;       // 20 teeth x 2 mm pitch / pi = 12.73 mm
 
 // Board layout: board-local X, Y, rotation (deg), type
@@ -405,6 +425,9 @@ mat('dark', 0x2b2f35, { rough: 0.6 });
 mat('hose', 0xe6e3d6, { opacity: 0.85, rough: 0.3 });
 mat('pu', 0x2f6fd6, { rough: 0.35 });
 mat('steel', 0xc7c9cc, { metal: 0.95, rough: 0.25 });
+mat('pom', 0x1c1c1e, { rough: 0.55 });
+mat('zinc', 0xa9abaf, { metal: 0.7, rough: 0.45 });
+mat('juki', 0x269452, { rough: 0.45 });
 mat('sponge', 0xf0cf3a, { rough: 0.95 });
 mat('tape', 0x2a2b2e, { rough: 0.7 });
 mat('cover', 0xf4f4f0, { opacity: 0.45, rough: 0.2 });
@@ -528,7 +551,7 @@ function stepper(parent, S, len, pilotD, shaftD, shaftL) {
   cylZ(parent, 0, 0, 0, shaftD, shaftL, MAT.lam, 16);
 }
 const nema17 = p => stepper(p, 42.3, XY_MOTOR_L, 22, 5, 22);
-const nema11Linear = p => stepper(p, 28, Z_MOTOR_L, 22, Z_SCREW_D, 0.1);   // ball screw is the motor shaft
+const nema17Linear = p => stepper(p, 42.3, PASTE_MOTOR_L, 22, PASTE_SCREW[0], 0.1);   // screw passes through the motor
 function gt2Pulley(parent, w = 7, hub = true) {
   cylZ(parent, 0, 0, -w / 2, GT2_PD, w, MAT.lam, 20);
   for (const s of [-1, 1]) cylZ(parent, 0, 0, s * (w / 2 + 0.5) - 0.5, GT2_PD + 4, 1, MAT.lam, 24);
@@ -748,13 +771,27 @@ for (let i = 0; i < FEEDER_N; i++) {
 const carriage = grp(machine);
 mgnBlock(grp(carriage, [0, XRAIL_SEAT, Z_BEAM], [90, 0, 0]), MGN12);
 box(carriage, [-MAIN_W / 2, MAIN_FRONT, MAIN_Z[0]], [MAIN_W / 2, MAIN_FRONT + MAIN_T, MAIN_Z[1]], MAT.plate);
-box(carriage, [-12, MAIN_FRONT + MAIN_T, MAIN_Z[1] - 10], [12, BEAM_Y - GT2_PD / 2 + 3, MAIN_Z[1]], MAT.print);
-box(carriage, [-12, BEAM_Y - GT2_PD / 2 - 6, Z_XBELT - 5], [12, BEAM_Y - GT2_PD / 2 + 3, MAIN_Z[1] - 10], MAT.print);
-box(carriage, [-MAIN_W / 2, -12, MAIN_Z[1]], [MAIN_W / 2, MAIN_FRONT + MAIN_T, MAIN_Z[1] + 4], MAT.print);
+box(carriage, [-12, MAIN_FRONT + MAIN_T, MAIN_Z[1] + 2], [12, BEAM_Y - GT2_PD / 2 + 3, Z_XBELT + 7], MAT.print);   // X belt clamp
+box(carriage, [-MAIN_W / 2, ZC_FRONT, MAIN_Z[1]], [MAIN_W / 2, MAIN_FRONT + MAIN_T, MAIN_Z[1] + 4], MAT.print);   // motor shelf
+function kp08(parent, z) {
+  box(parent, [-KP08[0] / 2, MAIN_FRONT - 5, z], [KP08[0] / 2, MAIN_FRONT, z + KP08[1]], MAT.zinc);
+  box(parent, [-13, SCREW_Y, z], [13, MAIN_FRONT, z + KP08[1]], MAT.zinc);
+  cylZ(parent, 0, SCREW_Y, z, 2 * (KP08[2] - KP08[3]), KP08[1], MAT.zinc, 28);
+}
+function sk8(parent, z) {
+  box(parent, [-SK8[0] / 2, MAIN_FRONT - 6, z], [SK8[0] / 2, MAIN_FRONT, z + SK8[1]], MAT.alu);
+  box(parent, [-SK8[4] / 2, MAIN_FRONT - SK8[2], z], [SK8[4] / 2, MAIN_FRONT, z + SK8[1]], MAT.alu);
+}
+// Z drive and guide per head: s = +1 nozzle (right), -1 syringe (left); rods on the outer sides
 for (const s of [-1, 1]) {
-  mgnRail(grp(carriage, [s * TOOL_DX, MAIN_FRONT, (Z_RAIL_Z[0] + Z_RAIL_Z[1]) / 2], [0, -90, 90]), MGN9, Z_RAIL_Z[1] - Z_RAIL_Z[0]);
-  nema11Linear(grp(carriage, [s * TOOL_DX, SCREW_Y, MAIN_Z[1] + 4], [180, 0, 0]));
-  cylZ(carriage, s * TOOL_DX, SCREW_Y, MAIN_Z[1] + 4 - Z_SCREW_LEN, Z_SCREW_D, Z_SCREW_LEN - 4, MAT.steel, 16);
+  const h = grp(carriage, [s * TOOL_DX, 0, 0]);
+  kp08(h, KP08_BOT_Z); kp08(h, KP08_TOP_Z);
+  cylZ(h, 0, SCREW_Y, SCREW_Z[0], 8, SCREW_Z[1] - SCREW_Z[0], MAT.steel, 16);
+  cylZ(h, 0, SCREW_Y, COUPLER_Z, COUPLER[0], COUPLER[1], MAT.alu, 24);
+  nema17(grp(h, [0, SCREW_Y, MAIN_Z[1] + 4], [180, 0, 0]));
+  const r = grp(h, [s * ROD_DX, 0, 0]);
+  sk8(r, SK8_BOT_Z); sk8(r, SK8_TOP_Z);
+  cylZ(r, 0, ROD_Y, ROD_Z[0], 8, ROD_Z[1] - ROD_Z[0], MAT.steel, 16);
 }
 // Down-looking camera between the tools
 box(carriage, [-10, 15, 160], [10, MAIN_FRONT, 172], MAT.print);
@@ -765,48 +802,69 @@ const topCone = add(carriage, new THREE.ConeGeometry(16, 138 - Z_PCB_TOP, 32, 1,
 topCone.position.set(0, 0, (138 + Z_PCB_TOP) / 2);
 topCone.visible = false;
 
-function zStage(parent) {
-  mgnBlock(grp(parent, [0, MAIN_FRONT, 85], [0, -90, 90]), MGN9);
-  box(parent, [-15, ZC_FRONT, 25], [15, ZC_FRONT + ZC_T, 140], MAT.plate);
-  box(parent, [-8, 14, 128], [8, ZC_FRONT, 140], MAT.brass);
+// Z plate with the anti-backlash nut block and the SCS8UU on its back; local origin at the tool tip
+function zStage(parent, s) {
+  const zb = ZC_FRONT + ZC_T, xr = s * ROD_DX;
+  box(parent, [s > 0 ? -20 : -ROD_DX - 19, ZC_FRONT, ZP_Z[0]], [s > 0 ? ROD_DX + 19 : 20, zb, ZP_Z[1]], MAT.plate);
+  for (const x of [-10, 10]) {
+    const g = cylGeo(8, NUT_SPACER, 16); g.rotateX(-Math.PI / 2);
+    add(parent, g, MAT.alu).position.set(x, zb + NUT_SPACER / 2, NUT_Z0 + NUT_BLK[1] / 2);
+  }
+  box(parent, [-NUT_BLK[0] / 2, SCREW_Y - NUT_BLK[2] / 2, NUT_Z0 + 10], [NUT_BLK[0] / 2, SCREW_Y + NUT_BLK[2] / 2, NUT_Z0 + NUT_BLK[1]], MAT.pom);
+  box(parent, [NUT_BLK[0] / 2 - 8, SCREW_Y - NUT_BLK[2] / 2, NUT_Z0 + 8], [NUT_BLK[0] / 2, SCREW_Y + NUT_BLK[2] / 2, NUT_Z0 + 10], MAT.pom);
+  box(parent, [-NUT_BLK[0] / 2, SCREW_Y - NUT_BLK[2] / 2, NUT_Z0], [NUT_BLK[0] / 2, SCREW_Y + NUT_BLK[2] / 2, NUT_Z0 + 8], MAT.pom);
+  box(parent, [xr - SCS8UU[0] / 2, zb, SCS_Z0], [xr + SCS8UU[0] / 2, zb + SCS_SPACER, SCS_Z0 + SCS8UU[1]], MAT.alu);
+  // SCS8UU housing as two halves either side of the rod
+  for (const side of [-1, 1]) box(parent, [side > 0 ? xr + 4.1 : xr - SCS8UU[0] / 2, zb + SCS_SPACER, SCS_Z0], [side > 0 ? xr + SCS8UU[0] / 2 : xr - 4.1, zb + SCS_SPACER + SCS8UU[2], SCS_Z0 + SCS8UU[1]], MAT.zinc);
+  box(parent, [xr - 4.1, zb + SCS_SPACER, SCS_Z0], [xr + 4.1, ROD_Y - 4.1, SCS_Z0 + SCS8UU[1]], MAT.zinc);
+  box(parent, [xr - 4.1, ROD_Y + 4.1, SCS_Z0], [xr + 4.1, zb + SCS_SPACER + SCS8UU[2], SCS_Z0 + SCS8UU[1]], MAT.zinc);
 }
 // Z1: vacuum nozzle, turned by the hollow-shaft NEMA 11 (C axis). Vacuum enters through the
 // rotary push-in fitting on top and runs down the hollow shaft to the nozzle.
 const z1 = grp(carriage, [TOOL_DX, 0, Z_TIP_SAFE]);
-zStage(z1);
+zStage(z1, 1);
 {
-  const z0 = NOZ_MOTOR_Z, zt = z0 + C_MOTOR_L;
+  const z0 = NOZ_MOTOR_Z + C_MOTOR_BOSS, zt = NOZ_MOTOR_Z + C_MOTOR_L;
   box(z1, [-17, -16, z0 - 4], [17, ZC_FRONT, z0], MAT.print);
-  for (const s of [-1, 1]) box(z1, [s > 0 ? 5 : -17, ZC_FRONT - 4, z0 - 4], [s > 0 ? 17 : -5, ZC_FRONT, zt], MAT.print);   // cheeks; the Z screw passes between
-  stepper(grp(z1, [0, 0, z0], [180, 0, 0]), C_MOTOR_S, C_MOTOR_L, 22, 5, 0.1);
-  cylZ(z1, 0, 0, zt, 6, 6, MAT.steel, 20);                     // shaft sleeve
-  cylZ(z1, 0, 0, zt + 6, 8 / Math.cos(Math.PI / 6), 5, MAT.steel, 6);   // M5 hex
-  cylZ(z1, 0, 0, zt + 11, 11, 3, MAT.steel, 24);               // bearing
-  cylZ(z1, 0, 0, zt + 14, 12, 11, MAT.white, 24);              // rotary body
-  cylZ(z1, 0, 0, zt + 25, 8.5, 7, MAT.white, 20);              // push-in fitting
-  cylZ(z1, 0, 0, zt + 32, 10, 5, MAT.pu, 20);                  // release collar
+  box(z1, [-17, ZC_FRONT - 4, z0 - 4], [17, ZC_FRONT, zt], MAT.print);
+  stepper(grp(z1, [0, 0, z0], [180, 0, 0]), C_MOTOR_S, C_MOTOR_L - C_MOTOR_BOSS, 22, 5, 0.1);
+  // rear stack scaled from the photo: sleeve, M5 hex, bearing, rotary body, push-in fitting, release collar
+  cylZ(z1, 0, 0, zt, 6, 2, MAT.steel, 20);
+  cylZ(z1, 0, 0, zt + 2, 8 / Math.cos(Math.PI / 6), 5.7, MAT.steel, 6);
+  cylZ(z1, 0, 0, zt + 7.7, 11, 4, MAT.steel, 24);
+  cylZ(z1, 0, 0, zt + 11.7, 11, 13.8, MAT.white, 24);
+  cylZ(z1, 0, 0, zt + 25.5, 9.8, 9.8, MAT.white, 20);
+  cylZ(z1, 0, 0, zt + 35.3, 10.3, C_REAR_STACK - 35.3, MAT.pu, 20);
 }
+// Rotating part: Juki-type holder and Juki 500-series nozzle (spring-loaded tip)
 const nozzle = grp(z1);
-cylZ(nozzle, 0, 0, NOZ_MOTOR_Z - 3, 5, 3, MAT.lam, 16);
-cylZ(nozzle, 0, 0, 16, 10, 11, MAT.lam, 24);
-box(nozzle, [4.2, -1.2, 18], [5.4, 1.2, 25], MAT.marker);
-cylZ(nozzle, 0, 0, 9, 5, 7, MAT.cap, 20);
-cylZ(nozzle, 0, 0, 5, 1.6, 4, MAT.lam, 20, 5);
-cylZ(nozzle, 0, 0, 0, 1.0, 5, MAT.lam, 12);
-// Z2: paste syringe
+cylZ(nozzle, 0, 0, 27.5, 9, NOZ_MOTOR_Z - 27.5, MAT.brass, 24);
+cylZ(nozzle, 0, 0, 25.5, 12, 2, MAT.juki, 24);
+cylZ(nozzle, 0, 0, 18.5, 8, 7, MAT.brass, 24);
+cylZ(nozzle, 0, 0, 12, 15, 6.5, MAT.juki, 28);
+box(nozzle, [5.5, -1, 17.5], [7.5, 1, 18.6], MAT.marker);
+cylZ(nozzle, 0, 0, 6.5, 4.5, 5.5, MAT.steel, 16);
+cylZ(nozzle, 0, 0, 0, 0.7, 6.5, MAT.cap, 16, 3.5);
+// Z2: paste syringe, plunger pushed by the NEMA 17 non-captive linear stepper on top
 const z2 = grp(carriage, [-TOOL_DX, 0, Z_TIP_SAFE]);
-zStage(z2);
-cylZ(z2, 0, 0, 0, 0.8, 13, MAT.lam, 10);
-cylZ(z2, 0, 0, 13, 3, 7, MAT.hub, 20, 6);
-cylZ(z2, 0, 0, 21, 17, 59, MAT.paste, 32);
-cylZ(z2, 0, 0, 80, 17, 4, MAT.white, 32);
-ring(z2, 0, 0, 20, 19, 17.2, 90, MAT.barrel, 32);
-box(z2, [-15, -10, 110], [15, 10, 112], MAT.barrel);
-cylZ(z2, 0, 0, 112, 22, 14, MAT.dark, 32);
-cylZ(z2, 0, 0, 126, 5, 10, MAT.hose, 16);
-for (const z of [40, 95]) {
-  ring(z2, 0, 0, z, 25, 19.2, 6, MAT.print);
-  for (const s of [-1, 1]) box(z2, [s > 0 ? 4 : -10, 9, z], [s > 0 ? 10 : -4, ZC_FRONT, z + 6], MAT.print);   // slot for the Z screw
+zStage(z2, -1);
+{
+  const piston = 21 + 85 * PASTE_LEVEL;
+  cylZ(z2, 0, 0, 0, 0.8, 13, MAT.lam, 10);
+  cylZ(z2, 0, 0, 13, 3, 7, MAT.hub, 20, 6);
+  cylZ(z2, 0, 0, 21, 17, piston - 21, MAT.paste, 32);
+  cylZ(z2, 0, 0, piston, 17, 4, MAT.white, 32);
+  ring(z2, 0, 0, 20, 19, 17.2, 90, MAT.barrel, 32);
+  box(z2, [-15, -10, 110], [15, 10, 112], MAT.barrel);
+  cylZ(z2, 0, 0, piston + 4, 12, 3, MAT.steel, 24);
+  cylZ(z2, 0, 0, piston + 7, PASTE_SCREW[0], PASTE_SCREW[1], MAT.steel, 16);
+  box(z2, [-22, ZC_FRONT - 4, 40], [22, ZC_FRONT, 122], MAT.print);
+  box(z2, [-22, -22, 118], [22, ZC_FRONT, 122], MAT.print);
+  nema17Linear(grp(z2, [0, 0, 122], [180, 0, 0]));
+  for (const z of [40, 95]) {
+    ring(z2, 0, 0, z, 25, 19.2, 6, MAT.print);
+    box(z2, [-6, 9, z], [6, ZC_FRONT - 4, z + 6], MAT.print);
+  }
 }
 // Up-looking camera cone (moves with nothing; lives in the frame)
 const bottomCone = add(frame, new THREE.ConeGeometry(14, Z_TIP_SAFE - 2 - (Z_PLATE + 30), 32, 1, true).rotateX(-Math.PI / 2), MAT.vision, false);
@@ -843,10 +901,12 @@ function tag(parent, text, pos) {
 tag(bed, 'Bed · Y 200 mm travel', [-BED_W / 2, -BED_D / 2, Z_BED_TOP]);
 tag(bed, 'Tape strips · 8 mm', [FEEDER_X[1], laneY(FEEDER_N - 1) + 6, Z_TAPE_TOP]);
 tag(board, 'PCB 100 × 80', [PCB_W / 2 + FIX_RIM, -PCB_D / 2, Z_PCB_TOP]);
-tag(frame, 'Gantry · X 280 mm travel', [-170, XRAIL_SEAT - 8, Z_BEAM + 14]);
-tag(z1, 'Nozzle · Z1 + C (NEMA 11 hollow shaft)', [14, -14, NOZ_MOTOR_Z + 20]);
-tag(z2, 'Paste syringe · Z2', [-11, -10, 70]);
+tag(frame, 'Gantry · X 230 mm travel', [-170, XRAIL_SEAT - 8, Z_BEAM + 14]);
+tag(z1, 'Nozzle · Z1 + C (NEMA 11 hollow shaft, Juki 500)', [14, -14, NOZ_MOTOR_Z + 20]);
+tag(z2, 'Paste syringe · Z2 · NEMA 17 plunger drive', [-21, -21, 140]);
 tag(carriage, 'Top camera', [-15, -15, 175]);
+tag(carriage, 'Z: T8 screw · KP08 · anti-backlash nut', [TOOL_DX + 27.5, SCREW_Y, KP08_TOP_Z + 6]);
+tag(carriage, 'Z guide: Ø8 rod · SK8 · SCS8UU', [TOOL_DX + ROD_DX + 21, ROD_Y, SK8_BOT_Z + 7]);
 tag(frame, 'Bottom camera', [BOTTOM_CAM_X + 22, -22, Z_PLATE + 18]);
 tag(frame, 'Needle wipe', [PURGE_X - 17, 0, Z_PLATE + 30]);
 tag(frame, 'Y motor', [52, Y_PULLEY_Y, Z_YBELT + 21]);
@@ -875,11 +935,11 @@ function arrow(parent, a, b, text, head = 7) {
   const o = new CSS2DObject(el); o.position.copy(A).add(B).multiplyScalar(0.5); parent.add(o);
 }
 arrow(dims, [-BED_W / 2 - 22, -Y_TRAVEL / 2, Z_BED_TOP], [-BED_W / 2 - 22, Y_TRAVEL / 2, Z_BED_TOP], 'Y travel 200');
-arrow(dims, [-X_TRAVEL / 2, 0, MAIN_Z[1] + 60], [X_TRAVEL / 2, 0, MAIN_Z[1] + 60], 'X travel 280');
+arrow(dims, [-X_TRAVEL / 2, 0, MAIN_Z[1] + 60], [X_TRAVEL / 2, 0, MAIN_Z[1] + 60], 'X travel 230');
 arrow(dimCarriage, [TOOL_DX + 26, 0, Z_TIP_SAFE], [TOOL_DX + 26, 0, Z_TIP_SAFE - Z_TRAVEL], 'Z 40');
 arrow(dims, [-FRAME_W / 2, -FRAME_D / 2 - 30, 0], [FRAME_W / 2, -FRAME_D / 2 - 30, 0], '460');
 arrow(dims, [FRAME_W / 2 + 30, -FRAME_D / 2, 0], [FRAME_W / 2 + 30, FRAME_D / 2, 0], '480');
-arrow(dims, [-FRAME_W / 2 - 30, FRAME_D / 2, 0], [-FRAME_W / 2 - 30, FRAME_D / 2, MAIN_Z[1] + 4 + Z_MOTOR_L], '380');
+arrow(dims, [-FRAME_W / 2 - 30, FRAME_D / 2, 0], [-FRAME_W / 2 - 30, FRAME_D / 2, MAIN_Z[1] + 4 + Z_MOTOR_L], '352');
 for (const yb of [-Y_TRAVEL / 2, Y_TRAVEL / 2]) {
   const e = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(BED_W, BED_D, BED_T)), dimDash);
   e.computeLineDistances();
@@ -894,7 +954,7 @@ function setLabels(on) { for (const l of labels) l.visible = on; }
 setDims(false);
 
 // ============================================================ pose
-const pose = { x: 140, y: 100, z1: 0, z2: 0, c: 0 };
+const pose = { x: X_TRAVEL / 2, y: Y_TRAVEL / 2, z1: 0, z2: 0, c: 0 };
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 function applyPose() {
   pose.x = clamp(pose.x, 0, X_TRAVEL); pose.y = clamp(pose.y, 0, Y_TRAVEL);
@@ -958,7 +1018,7 @@ function buildProgram() {
   S.push(call(resetBoard));
   status('Homing to the park position');
   S.push(move({ z1: 0, z2: 0, c: 0 }));
-  S.push(move({ x: 140, y: 100 }));
+  S.push(move({ x: X_TRAVEL / 2, y: Y_TRAVEL / 2 }));
   FIDUCIALS.forEach(([fx, fy], i) => {
     status(`Fiducial ${i + 1} of 3 · top camera`);
     S.push(move(over('camera', ...boardToBed(fx, fy))));
@@ -1013,7 +1073,7 @@ function buildProgram() {
     S.push(move({ z1: 0 }));
   });
   status('Board done · parking');
-  S.push(move({ x: 140, y: 100, c: 0 }));
+  S.push(move({ x: X_TRAVEL / 2, y: Y_TRAVEL / 2, c: 0 }));
   S.push(wait(2.5));
   return S;
 }
