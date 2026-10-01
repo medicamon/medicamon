@@ -67,7 +67,7 @@ function g_P(g)  = g[7];
 
 // ---------------------------------------------------------------- Y axis (bed)
 Y_RAIL_X = 50;            // rails at X = +/-50
-Y_RAIL_LEN = 400;
+Y_RAIL_LEN = 370;                     // blocks reach +/-178; ends clear the Y motor at Y = 197
 RISER_H = 20;             // 2020 riser under each Y rail
 Z_YRAIL = Z_PLATE + RISER_H;          // 74, rail seat
 BED_W = 140;              // narrow bed: board at the front, tape strips across the back
@@ -112,6 +112,11 @@ TOOL_DX = 35;                         // nozzle at +35, syringe at -35
 Z_TIP_SAFE = 121;                     // tool tip height at Z = 0
 Z_RAIL_Z = [140, 310];
 SCREW_Y = 21;
+// Motors (see README, "Motors and drivers")
+XY_MOTOR_L = 48;                      // StepperOnline 17HM19-2004S: NEMA 17, 0.9 deg, 2.0 A, 48 mm body
+Z_MOTOR_L = 46;                       // StepperOnline 11E18S1004BAM5-150RS: NEMA 11 external linear, 46 mm body
+Z_SCREW_D = 6;                        //   ball screw diameter
+Z_SCREW_LEN = 150;                    //   ball screw length, 2 mm lead
 X_PULLEY_X = 255;                     // clear of the beam end (230) by the motor half-width
 Z_XBELT = 315;
 
@@ -220,8 +225,9 @@ module stepper(S, len, pilot_d, shaft_d, shaft_l, hollow=0) {
     if (hollow > 0) translate([0,0,-1]) cylinder(d=hollow, h=shaft_l+2, $fn=12);
   }
 }
-module nema17(len=40) stepper(42.3, len, 22, 5, 22);
-module nema11(len=32) stepper(28, len, 22, 5, 20);
+module nema17(len=XY_MOTOR_L) stepper(42.3, len, 22, 5, 22);
+// NEMA 11 external linear actuator: the ball screw is the motor shaft
+module nema11_linear(len=Z_MOTOR_L) stepper(28, len, 22, Z_SCREW_D, 0.1);
 module nema11_hollow(len=C_MOTOR_L) stepper(C_MOTOR_S, len, 22, 5, 0.1, hollow=3);
 
 // GT2 pulley, 20 teeth: pitch diameter 20*2/pi = 12.73 mm, 40 mm per revolution
@@ -434,12 +440,11 @@ module x_carriage(z1, z2, c) {
   }
   // motor shelf
   color(C_PRINT) box([-MAIN_W/2, -12, MAIN_Z[1]], [MAIN_W/2, MAIN_FRONT+MAIN_T, MAIN_Z[1]+4]);
-  // Z rails, lead screws and Z motors
+  // Z rails and Z motors (NEMA 11 linear actuators, ball screw pointing down)
   for (s=[-1,1]) translate([s*TOOL_DX, 0, 0]) {
     translate([0, MAIN_FRONT, (Z_RAIL_Z[0]+Z_RAIL_Z[1])/2]) rotate([0,0,90]) rotate([0,-90,0]) mgn_rail(MGN9, Z_RAIL_Z[1]-Z_RAIL_Z[0]);
-    translate([0, SCREW_Y, MAIN_Z[1]+4]) rotate([180,0,0]) nema11();
-    color(C_LAM) translate([0, SCREW_Y, 200]) cylinder(d=8, h=MAIN_Z[1]-200-18);
-    color(C_LAM) translate([0, SCREW_Y, MAIN_Z[1]-18]) cylinder(d=14, h=18);
+    translate([0, SCREW_Y, MAIN_Z[1]+4]) rotate([180,0,0]) nema11_linear();
+    color(C_STEEL) translate([0, SCREW_Y, MAIN_Z[1]+4-Z_SCREW_LEN]) cylinder(d=Z_SCREW_D, h=Z_SCREW_LEN-4);
   }
   // top (down-looking) camera between the tools
   color(C_PRINT) box([-10, 15, 160], [10, MAIN_FRONT, 172]);
@@ -456,7 +461,7 @@ module z_stage() {
   // MGN9 block, its rail seat is the main plate front face
   translate([0, MAIN_FRONT, 85]) rotate([0,0,90]) rotate([0,-90,0]) mgn_block(MGN9);
   color(C_PLATE) box([-15, ZC_FRONT, 25], [15, ZC_FRONT+ZC_T, 140]);
-  // lead screw nut
+  // ball nut in its bracket
   color(C_BRASS) box([-8, 14, 128], [8, ZC_FRONT, 140]);
 }
 
@@ -467,7 +472,8 @@ module nozzle_head(c) {
   color(C_PRINT) difference() {
     union() {
       box([-17, -16, z0-4], [17, ZC_FRONT, z0]);
-      box([-17, ZC_FRONT-4, z0-4], [17, ZC_FRONT, z0+C_MOTOR_L]);
+      // two side cheeks: the Z ball screw passes between them
+      for (s=[-1,1]) box([s>0 ? 5 : -17, ZC_FRONT-4, z0-4], [s>0 ? 17 : -5, ZC_FRONT, z0+C_MOTOR_L]);
     }
     translate([0,0,z0-5]) cylinder(d=23, h=6);
   }
@@ -507,7 +513,8 @@ module syringe() {
   // clamps to the Z carriage
   color(C_PRINT) for (z=[40, 95]) {
     translate([0,0,z]) difference() { cylinder(d=25, h=6); translate([0,0,-1]) cylinder(d=19.2, h=8); }
-    box([-6, 12, z], [6, ZC_FRONT, z+6]);
+    // two arms per clamp, leaving a slot for the Z ball screw
+    for (s=[-1,1]) box([s>0 ? 4 : -10, 9, z], [s>0 ? 10 : -4, ZC_FRONT, z+6]);
   }
 }
 
@@ -550,7 +557,8 @@ module pnp_200(p) {
 
 P = pose();
 echo(str("PnP-200 pose X=", P[0], " Y=", P[1], " Z1=", P[2], " Z2=", P[3], " C=", P[4]));
-echo(str("Frame ", FRAME_W, " x ", FRAME_D, " mm (", 2*(X_PULLEY_X+26), " mm wide over the X drive, ", POST_X+49, " mm to the pump side), top of Z motors at ", MAIN_Z[1]+4+32, " mm"));
+echo(str("Frame ", FRAME_W, " x ", FRAME_D, " mm (", 2*(X_PULLEY_X+26), " mm wide over the X drive, ", POST_X+49, " mm to the pump side), top of Z motors at ", MAIN_Z[1]+4+Z_MOTOR_L, " mm"));
 echo(str("Bed ", BED_W, " x ", BED_D, " mm, board fixture ", PCB_W, " x ", PCB_D, " mm"));
-echo(str("X/Y belt: GT2 20T, ", 20*2, " mm/rev, ", 200*16/(20*2), " microsteps/mm at 1/16"));
+echo(str("X/Y: 0.9 deg motor, GT2 20T = ", 20*2, " mm/rev: ", 20*2/400, " mm per full step, ", 400*16/(20*2), " microsteps/mm at 1/16"));
+echo(str("Z: 1.8 deg motor, 2 mm-lead ball screw: ", 2/200, " mm per full step, ", 200*16/2, " microsteps/mm at 1/16"));
 pnp_200(P);

@@ -236,13 +236,14 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
     <section>
       <p class="eyebrow">Key numbers</p>
       <table class="spec">
-        <tr><th>Frame</th><td>460 × 480 mm (562 mm wide over the X drive), 366 mm tall; 2040/2020 extrusion</td></tr>
+        <tr><th>Frame</th><td>460 × 480 mm (562 mm wide over the X drive), 380 mm tall to the Z motors; 2040/2020 extrusion</td></tr>
         <tr><th>Bed (Y)</th><td>140 × 186 mm plate, 200 mm travel, 2 × MGN12 rails, 4 × MGN12H blocks</td></tr>
         <tr><th>Board</th><td>100 × 80 mm pocket on the front half of the bed, board top 96 mm above the table</td></tr>
         <tr><th>Head (X)</th><td>280 mm travel, 1 × MGN12H on the gantry beam</td></tr>
-        <tr><th>Nozzle (Z1, C)</th><td>40 mm on MGN9H, NEMA 11 + Tr8 screw. C: OUKEDA OK28ZK34 hollow-shaft NEMA 11 (28 × 28 × 34 mm) with a rotary push-in fitting for 4 mm hose</td></tr>
+        <tr><th>Nozzle (Z1, C)</th><td>40 mm on MGN9H, NEMA 11 linear actuator with a 2 mm-lead ball screw. C: OUKEDA OK28ZK34 hollow-shaft NEMA 11 (28 × 28 × 34 mm) with a rotary push-in fitting for 4 mm hose</td></tr>
         <tr><th>Syringe (Z2)</th><td>40 mm on MGN9H, 10 cc barrel, air-pressure dispensing</td></tr>
-        <tr><th>X/Y drive</th><td>NEMA 17, GT2 belt, 20T pulley: 40 mm/rev, 80 microsteps/mm at 1/16</td></tr>
+        <tr><th>X/Y drive</th><td>NEMA 17 0.9° (17HM19-2004S), GT2 belt, 20T pulley: 0.1 mm per full step, 160 microsteps/mm at 1/16</td></tr>
+        <tr><th>Z drive</th><td>NEMA 11 linear (11E18S1004BAM5-150RS), 2 mm ball screw: 0.01 mm per full step, 1600 microsteps/mm at 1/16</td></tr>
         <tr><th>Feeders</th><td>6 strips of 8 mm tape across the back half of the bed, 4 mm sprocket pitch</td></tr>
         <tr><th>Vacuum</th><td>Pump and valve on the outside of the right post; the hose loops over the gantry to the nozzle</td></tr>
         <tr><th>Vision</th><td>Down camera on the head (fiducials), up camera on the frame (part alignment)</td></tr>
@@ -278,7 +279,7 @@ const Z_BASE_TOP = FOOT_H + BASE_H, Z_PLATE = Z_BASE_TOP + PLATE_T;
 // HIWIN MGN catalogue values
 const MGN12 = { WR: 12, HR: 8, W: 27, L: 45.4, L1: 32.4, H: 13, H1: 3 };
 const MGN9 = { WR: 9, HR: 6.5, W: 20, L: 39.9, L1: 28.9, H: 10, H1: 2 };
-const Y_RAIL_X = 50, Y_RAIL_LEN = 400, RISER_H = 20, Z_YRAIL = Z_PLATE + RISER_H;
+const Y_RAIL_X = 50, Y_RAIL_LEN = 370, RISER_H = 20, Z_YRAIL = Z_PLATE + RISER_H;
 const BED_W = 140, BED_D = 186, BED_T = 6;      // narrow bed: board in front, tape strips across the back
 const Z_BED = Z_YRAIL + MGN12.H, Z_BED_TOP = Z_BED + BED_T;
 const Y_BLOCK_OFF = 55, Y_PULLEY_Y = 218, Z_YBELT = 76;
@@ -292,6 +293,9 @@ const MAIN_FRONT = ZC_FRONT + ZC_T + MGN9.H, MAIN_T = 8;
 const XRAIL_SEAT = MAIN_FRONT + MAIN_T + MGN12.H;
 const BEAM_Y = XRAIL_SEAT + 10, Z_BEAM = 280, Z_POST_TOP = Z_BEAM - 20;
 const MAIN_W = 120, MAIN_Z = [130, 330], TOOL_DX = 35, Z_TIP_SAFE = 121;
+// Motors: X/Y StepperOnline 17HM19-2004S (NEMA 17, 0.9 deg, 48 mm body);
+// Z1/Z2 StepperOnline 11E18S1004BAM5-150RS (NEMA 11 external linear, 46 mm body, 6 mm ball screw, 2 mm lead, 150 mm)
+const XY_MOTOR_L = 48, Z_MOTOR_L = 46, Z_SCREW_D = 6, Z_SCREW_LEN = 150;
 const Z_RAIL_Z = [140, 310], SCREW_Y = 21, X_PULLEY_X = 255, Z_XBELT = 315;
 const BOTTOM_CAM_X = 160, PURGE_X = -160, REJECT_X = 110;
 // Nozzle head: OUKEDA OK28ZK34-084B-HM5 as photographed (28 mm frame, 34 mm body, hollow shaft,
@@ -499,7 +503,8 @@ function extZ(parent, len, wx, dy, pos) { const g = extGeo(wx, dy, len); g.trans
 // Linear guide rail along local X, seat at z = 0
 function mgnRail(parent, g, len) {
   box(parent, [-len / 2, -g.WR / 2, 0], [len / 2, g.WR / 2, g.HR], MAT.rail);
-  for (const s of [-1, 1]) box(parent, [-len / 2, s * g.WR / 2 - 0.25, g.HR * 0.45], [len / 2, s * g.WR / 2 + 0.25, g.HR * 0.72], MAT.cap);
+  // groove marks, kept inside the 0.2 mm running clearance of the block
+  for (const s of [-1, 1]) box(parent, [-len / 2, s > 0 ? g.WR / 2 - 0.3 : -g.WR / 2 - 0.05, g.HR * 0.45], [len / 2, s > 0 ? g.WR / 2 + 0.05 : -g.WR / 2 + 0.3, g.HR * 0.72], MAT.cap);
 }
 // Carriage block wrapping the rail, same local frame
 function mgnBlock(parent, g) {
@@ -522,8 +527,8 @@ function stepper(parent, S, len, pilotD, shaftD, shaftL) {
   cylZ(parent, 0, 0, 0, pilotD, 1.5, MAT.lam);
   cylZ(parent, 0, 0, 0, shaftD, shaftL, MAT.lam, 16);
 }
-const nema17 = p => stepper(p, 42.3, 40, 22, 5, 22);
-const nema11 = p => stepper(p, 28, 32, 22, 5, 20);
+const nema17 = p => stepper(p, 42.3, XY_MOTOR_L, 22, 5, 22);
+const nema11Linear = p => stepper(p, 28, Z_MOTOR_L, 22, Z_SCREW_D, 0.1);   // ball screw is the motor shaft
 function gt2Pulley(parent, w = 7, hub = true) {
   cylZ(parent, 0, 0, -w / 2, GT2_PD, w, MAT.lam, 20);
   for (const s of [-1, 1]) cylZ(parent, 0, 0, s * (w / 2 + 0.5) - 0.5, GT2_PD + 4, 1, MAT.lam, 24);
@@ -748,9 +753,8 @@ box(carriage, [-12, BEAM_Y - GT2_PD / 2 - 6, Z_XBELT - 5], [12, BEAM_Y - GT2_PD 
 box(carriage, [-MAIN_W / 2, -12, MAIN_Z[1]], [MAIN_W / 2, MAIN_FRONT + MAIN_T, MAIN_Z[1] + 4], MAT.print);
 for (const s of [-1, 1]) {
   mgnRail(grp(carriage, [s * TOOL_DX, MAIN_FRONT, (Z_RAIL_Z[0] + Z_RAIL_Z[1]) / 2], [0, -90, 90]), MGN9, Z_RAIL_Z[1] - Z_RAIL_Z[0]);
-  nema11(grp(carriage, [s * TOOL_DX, SCREW_Y, MAIN_Z[1] + 4], [180, 0, 0]));
-  cylZ(carriage, s * TOOL_DX, SCREW_Y, 200, 8, MAIN_Z[1] - 218, MAT.lam, 16);
-  cylZ(carriage, s * TOOL_DX, SCREW_Y, MAIN_Z[1] - 18, 14, 18, MAT.lam, 20);
+  nema11Linear(grp(carriage, [s * TOOL_DX, SCREW_Y, MAIN_Z[1] + 4], [180, 0, 0]));
+  cylZ(carriage, s * TOOL_DX, SCREW_Y, MAIN_Z[1] + 4 - Z_SCREW_LEN, Z_SCREW_D, Z_SCREW_LEN - 4, MAT.steel, 16);
 }
 // Down-looking camera between the tools
 box(carriage, [-10, 15, 160], [10, MAIN_FRONT, 172], MAT.print);
@@ -773,7 +777,7 @@ zStage(z1);
 {
   const z0 = NOZ_MOTOR_Z, zt = z0 + C_MOTOR_L;
   box(z1, [-17, -16, z0 - 4], [17, ZC_FRONT, z0], MAT.print);
-  box(z1, [-17, ZC_FRONT - 4, z0 - 4], [17, ZC_FRONT, zt], MAT.print);
+  for (const s of [-1, 1]) box(z1, [s > 0 ? 5 : -17, ZC_FRONT - 4, z0 - 4], [s > 0 ? 17 : -5, ZC_FRONT, zt], MAT.print);   // cheeks; the Z screw passes between
   stepper(grp(z1, [0, 0, z0], [180, 0, 0]), C_MOTOR_S, C_MOTOR_L, 22, 5, 0.1);
   cylZ(z1, 0, 0, zt, 6, 6, MAT.steel, 20);                     // shaft sleeve
   cylZ(z1, 0, 0, zt + 6, 8 / Math.cos(Math.PI / 6), 5, MAT.steel, 6);   // M5 hex
@@ -800,7 +804,10 @@ ring(z2, 0, 0, 20, 19, 17.2, 90, MAT.barrel, 32);
 box(z2, [-15, -10, 110], [15, 10, 112], MAT.barrel);
 cylZ(z2, 0, 0, 112, 22, 14, MAT.dark, 32);
 cylZ(z2, 0, 0, 126, 5, 10, MAT.hose, 16);
-for (const z of [40, 95]) { ring(z2, 0, 0, z, 25, 19.2, 6, MAT.print); box(z2, [-6, 12, z], [6, ZC_FRONT, z + 6], MAT.print); }
+for (const z of [40, 95]) {
+  ring(z2, 0, 0, z, 25, 19.2, 6, MAT.print);
+  for (const s of [-1, 1]) box(z2, [s > 0 ? 4 : -10, 9, z], [s > 0 ? 10 : -4, ZC_FRONT, z + 6], MAT.print);   // slot for the Z screw
+}
 // Up-looking camera cone (moves with nothing; lives in the frame)
 const bottomCone = add(frame, new THREE.ConeGeometry(14, Z_TIP_SAFE - 2 - (Z_PLATE + 30), 32, 1, true).rotateX(-Math.PI / 2), MAT.vision, false);
 bottomCone.position.set(BOTTOM_CAM_X, 0, (Z_TIP_SAFE - 2 + Z_PLATE + 30) / 2);
@@ -872,7 +879,7 @@ arrow(dims, [-X_TRAVEL / 2, 0, MAIN_Z[1] + 60], [X_TRAVEL / 2, 0, MAIN_Z[1] + 60
 arrow(dimCarriage, [TOOL_DX + 26, 0, Z_TIP_SAFE], [TOOL_DX + 26, 0, Z_TIP_SAFE - Z_TRAVEL], 'Z 40');
 arrow(dims, [-FRAME_W / 2, -FRAME_D / 2 - 30, 0], [FRAME_W / 2, -FRAME_D / 2 - 30, 0], '460');
 arrow(dims, [FRAME_W / 2 + 30, -FRAME_D / 2, 0], [FRAME_W / 2 + 30, FRAME_D / 2, 0], '480');
-arrow(dims, [-FRAME_W / 2 - 30, FRAME_D / 2, 0], [-FRAME_W / 2 - 30, FRAME_D / 2, MAIN_Z[1] + 36], '366');
+arrow(dims, [-FRAME_W / 2 - 30, FRAME_D / 2, 0], [-FRAME_W / 2 - 30, FRAME_D / 2, MAIN_Z[1] + 4 + Z_MOTOR_L], '380');
 for (const yb of [-Y_TRAVEL / 2, Y_TRAVEL / 2]) {
   const e = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(BED_W, BED_D, BED_T)), dimDash);
   e.computeLineDistances();
@@ -1154,7 +1161,7 @@ else setStatus('Ready · press Run cycle to start the demo');
 
 // Hook for scripted exports (STL/GLB) and debugging
 window.pnp200 = {
-  THREE, scene, machine, overlay, camera, controls, pose, applyPose, setPlaying, setDims, setLabels, resetBoard,
+  THREE, scene, machine, overlay, camera, controls, pose, groups: { frame, bed, carriage, z1, z2, nozzle, hose: hoseMesh }, applyPose, setPlaying, setDims, setLabels, resetBoard,
   advance(sec) { const was = playing; playing = true; for (let i = 0; i < sec * 60; i++) tick(1 / 60); playing = was; applyPose(); },
 };
 </script>
