@@ -18,32 +18,9 @@ marked as a datasheet value.
 
 ## Circuit
 
-```
-                    RG 24.9k                         Cf 820p
-                   ┌──/\/\──┐               ┌──────────||──────────┐
- E+ ──[Rprot]──┬───┤+  INA333 ├──┬── INA_OUT ─┤      Rf 1M          │
-               │   │  G=5.016 │  │          ├───────/\/\/\─────────┤
- E- ──[Rprot]──┼───┤-     REF ├┐ │   Rin    │   Q1▷|─Q2▷|  (2× diode-│
-               │   └──────────┘│ └──/\/\/\──┤   Q4|◁─Q3|◁   conn. NPN│
-           10M to VMID         │   64.9k    │  each way)            │
-           (or RLD)            │            │   ┌──────────┐        │
-                               │            └───┤-          │        │
-                               │                │  U2B      ├────────┴── VOUT (to ADC)
-                               │    VMID ───────┤+ LTC2064  │
-                               │                └──────────┘
-                               │        Cs 100n (1µ for 0.05 Hz)
-                               │      ┌───||───┐
-                               │  Rs  │        │
-          INA_OUT ─────────────┼─/\/\─┴──┤-    │
-                               │   3.3M  │ U2A ├──┐
-                               │  VMID ──┤+    │  │
-                               │         └─────┘  │
-                               └──────────────────┘  (servo output → INA333 REF)
+![Lin-log AFE schematic](schematic.png)
 
- VMID = 3.0 V / 2 from 2 × 10 MΩ divider + 100 nF (feeds only op-amp + inputs, pA loads)
- Q1–Q4: MMBT3904 wired as diodes (base tied to collector); two in series for each polarity
-        (e.g. 2 × MMDT3904 dual, so each pair shares a package and temperature)
-```
+Vector version: [`schematic.svg`](schematic.svg). Regenerate with `python3 schematic.py`. INA333 pin numbers follow TI SBOS445. The LTC2064 supply pins (V+ = 3.0 V, V− = GND) are not drawn. Parts marked * (input protection and electrode bias) are recommended for a real board but are not in the simulation; size them to your safety standard.
 
 How it works:
 
@@ -56,6 +33,8 @@ How it works:
    transistors). For small signals the junctions carry pA–nA and gain = Rf/Rin = 15.4. As |Vout|
    approaches 2·V_BE (≈0.6–0.7 V), junction current takes over and Vout ∝ ln(Vin), at about
    120–140 mV per decade. Cf sets the anti-alias low-pass (1/(2π·Rf·Cf) = 194 Hz).
+   The stage inverts: VOUT falls below VMID when E+ is above E−. Swap the electrode
+   leads or flip the sign in firmware if you want positive-going output.
 4. **Zero-drift op-amps matter**: stage 2's DC gains (noise gain 16.4 for its own offset, ×15.4 for
    the servo's offset) multiply the op-amp offset. With LTC2064 (5 µV max) the knee shift is
    < 0.2 mV, so the knees stay symmetric. A 1.5 mV-max part such as OPA379 could shift a knee by
@@ -146,6 +125,7 @@ only first order, and the LTC2064 chops at about 5 kHz.
 ```bash
 sudo apt-get install ngspice && pip install numpy scipy matplotlib
 python3 sim/linlog_afe.py   # writes sim/results/*.png and summary.txt in about 10 s
+pip install schemdraw && python3 schematic.py   # redraws schematic.png / .svg
 ```
 
 ## References
