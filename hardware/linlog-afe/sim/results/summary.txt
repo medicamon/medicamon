@@ -1,0 +1,51 @@
+Rin sweep (Rf = 1 MOhm, 2x MMBT3904 per polarity), 1% compression point:
+  Rin= 56.0k  15C: G= -89.6 1%@ 8.86mV  25C: G= -89.6 1%@ 8.20mV  40C: G= -89.6 1%@ 7.18mV
+  Rin= 59.0k  15C: G= -85.0 1%@ 9.34mV  25C: G= -85.0 1%@ 8.64mV  40C: G= -85.0 1%@ 7.57mV
+  Rin= 61.9k  15C: G= -81.0 1%@ 9.80mV  25C: G= -81.0 1%@ 9.06mV  40C: G= -81.0 1%@ 7.94mV
+  Rin= 64.9k  15C: G= -77.3 1%@10.27mV  25C: G= -77.3 1%@ 9.50mV  40C: G= -77.3 1%@ 8.32mV
+  Rin= 68.0k  15C: G= -73.8 1%@10.76mV  25C: G= -73.8 1%@ 9.96mV  40C: G= -73.8 1%@ 8.72mV
+  Rin= 75.0k  15C: G= -66.9 1%@11.87mV  25C: G= -66.9 1%@10.98mV  40C: G= -66.9 1%@ 9.62mV
+
+Selected Rin = 64.9 kOhm
+
+T=15 C: small-signal gain -77.29 V/V; compression points (+/-):
+    1%: +10.27 mV / -10.27 mV
+    2%: +10.88 mV / -10.87 mV
+    5%: +11.91 mV / -11.91 mV
+    Vin=    8 mV -> Vout-VMID=-0.618 V, INA out-VMID=+0.040 V
+    Vin=   20 mV -> Vout-VMID=-0.998 V, INA out-VMID=+0.100 V
+    Vin=   50 mV -> Vout-VMID=-1.079 V, INA out-VMID=+0.251 V
+    Vin=  100 mV -> Vout-VMID=-1.122 V, INA out-VMID=+0.502 V
+    Vin=  200 mV -> Vout-VMID=-1.161 V, INA out-VMID=+1.003 V
+    Vin=  300 mV -> Vout-VMID=-1.180 V, INA out-VMID=+1.450 V
+T=25 C: small-signal gain -77.29 V/V; compression points (+/-):
+    1%: +9.51 mV / -9.50 mV
+    2%: +10.12 mV / -10.12 mV
+    5%: +11.15 mV / -11.15 mV
+    Vin=    8 mV -> Vout-VMID=-0.617 V, INA out-VMID=+0.040 V
+    Vin=   20 mV -> Vout-VMID=-0.954 V, INA out-VMID=+0.100 V
+    Vin=   50 mV -> Vout-VMID=-1.035 V, INA out-VMID=+0.251 V
+    Vin=  100 mV -> Vout-VMID=-1.079 V, INA out-VMID=+0.502 V
+    Vin=  200 mV -> Vout-VMID=-1.119 V, INA out-VMID=+1.003 V
+    Vin=  300 mV -> Vout-VMID=-1.139 V, INA out-VMID=+1.450 V
+T=40 C: small-signal gain -77.29 V/V; compression points (+/-):
+    1%: +8.33 mV / -8.32 mV
+    2%: +8.96 mV / -8.96 mV
+    5%: +10.01 mV / -10.01 mV
+    Vin=    8 mV -> Vout-VMID=-0.614 V, INA out-VMID=+0.040 V
+    Vin=   20 mV -> Vout-VMID=-0.889 V, INA out-VMID=+0.100 V
+    Vin=   50 mV -> Vout-VMID=-0.969 V, INA out-VMID=+0.251 V
+    Vin=  100 mV -> Vout-VMID=-1.014 V, INA out-VMID=+0.502 V
+    Vin=  200 mV -> Vout-VMID=-1.056 V, INA out-VMID=+1.003 V
+    Vin=  300 mV -> Vout-VMID=-1.077 V, INA out-VMID=+1.450 V
+Inverse model fit @25 C: Is = 5.377e-15 A, n = 1.0032
+    15 C, 1-280 mV: max |error| 0.11 % with measured T, 116.5 % if T is ignored (assumed 25 C)
+    25 C, 1-280 mV: max |error| 0.07 % with measured T, 0.1 % if T is ignored (assumed 25 C)
+    40 C, 1-280 mV: max |error| 0.12 % with measured T, 66.7 % if T is ignored (assumed 25 C)
+AC (Cs = 100 nF (monitor, 0.48 Hz)): midband 37.74 dB (77.1 V/V), -3 dB 0.501 Hz .. 166 Hz
+AC (Cs = 1 µF (diagnostic, 0.048 Hz)): midband 37.75 dB (77.1 V/V), -3 dB 0.05 Hz .. 166 Hz
+Noise: input density at 10 Hz = 90.9 nV/rtHz
+Noise: total output 0.01 Hz-20 kHz = 115.9 uVrms -> RTI 1.50 uVrms (~9.9 uVpp @6.6x)
+Noise: RTI brick-wall 0.5-150 Hz = 1.11 uVrms
+       (white-noise models only; add electrode/skin noise and input-protection R noise)
+Transient: max |Vout-VMID| = 1.123 V; INA out range 1.294..2.754 V; REF range 0.245..1.561 V
