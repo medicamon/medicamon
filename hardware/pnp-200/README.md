@@ -34,6 +34,7 @@ The layout follows the hand sketch (front and top views) and the photographed pa
 | `viewer.html` | Interactive three.js viewer. You can jog each axis, run the demo cycle (fiducials, paste, pick, bottom-vision check, place), and show travel and overall dimensions. |
 | `pnp_200.stl` | The whole assembly exported from OpenSCAD: binary STL, mm, Z up, pose X 115 / Y 100. GitHub shows it in its 3D viewer. |
 | `pnp_200.glb` | A colour glTF export from the viewer with the demo board populated. It is Y-up, as the glTF format requires. |
+| `firmware/scale_axis/` | Arduino firmware for an optional closed-loop X or Y axis with a glass scale (see [Glass scales](#glass-scales-optional)). |
 
 The viewer and the SCAD file share the same parameter names and values. Both exports have the same bounding box to within 0.2 mm (the difference is in how each tool draws the curved hose).
 
@@ -323,6 +324,26 @@ Use a **TMC2209** for each of the six motors. It handles 2 A RMS (2.8 A peak) on
   - Over the bed, Z never needs more than about 25 mm.
   - A full 40 mm nozzle plunge at the right end of travel hits the bottom camera's lens.
   - Set OpenPnP's safe Z, and its Z limits per head, accordingly.
+
+### Glass scales (optional)
+
+A 5 µm glass DRO scale on X and Y lets each axis measure where the carriage really is. An Arduino per axis runs [`firmware/scale_axis`](firmware/scale_axis/), which ends each move within ±1–2 counts (±5–10 µm) of the target on the scale. That figure comes from simulation; it has not been tested on hardware.
+
+**What it fixes.** Everything between the motor and the read head:
+- **Off-centre pulley:** it gives a ±e error that repeats every pulley turn (40 mm). Fiducials cannot remove that, because they fit one straight-line correction across the board.
+- **Belt and motor:** belt stretch, belt pitch error, the motor's ±5 µm step error and lost steps.
+- **Heat:** thermal growth of the belt and frame.
+
+**What it doesn't fix.**
+- **Tilt between the read head and the nozzle tip (Abbe error):** each 10 arc-seconds of tilt moves the tip 8.7 µm over a 180 mm offset, but only 1.5 µm over 30 mm.
+- **Other errors:** the Z plate wobble (see the Z axis section above), nozzle runout and camera calibration.
+
+**Lengths.** The scale body is about 90–110 mm longer than its measuring length. Buy 250 mm for X (230 mm travel), and 250 or 300 mm for Y (200 mm travel).
+
+**Where to mount them.** These positions are not yet in the 3D model and not collision-checked.
+- **X:** fix the scale body between the gantry posts (420 mm apart inside), just above the bed's path at about z = 110–140 mm, behind the carriage plate. Put the read head on the carriage.
+  - The X rail is on the beam at z ≈ 280 mm, so mounting the scale low cuts the offset to the nozzle tip from about 180 mm to 15–45 mm.
+- **Y:** put the scale under the bed, between the Y belt (x = 0) and one rail, as high as the bed allows.
 
 ### Shopping list
 
